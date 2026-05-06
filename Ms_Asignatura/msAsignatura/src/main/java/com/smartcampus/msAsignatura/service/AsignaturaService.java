@@ -43,11 +43,11 @@ public class AsignaturaService {
             Asignatura a = new Asignatura();
             a.setSigla(dto.getSigla().toUpperCase());
             a.setNombre_asignatura(dto.getNombre().toUpperCase());
-            a.setIdEstado(dto.getIdEstado());                asignaturaRepository.save(a);
-             return mapToDto(asignaturaRepository.save(a));
+            a.setIdEstado(dto.getIdEstado());               
+            return mapToDto(asignaturaRepository.save(a));
         } catch (Exception e) {
             log.error("Error al guardar asignatura: {}", e.getMessage());
-            throw new RuntimeException("Error técnico: " + e.getMessage());          
+            throw new RuntimeException("No se pudo crear la asignatura " + e.getMessage());          
         }
     }
 

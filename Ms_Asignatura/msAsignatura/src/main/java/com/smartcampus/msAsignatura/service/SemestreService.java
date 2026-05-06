@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.smartcampus.msAsignatura.DTO.SemestreRequestDTO;
 import com.smartcampus.msAsignatura.DTO.SemestreResponseDTO;
 import com.smartcampus.msAsignatura.model.Semestre;
 import com.smartcampus.msAsignatura.repository.SemestreRepository;
@@ -32,14 +33,15 @@ public class SemestreService {
         .map(this::mapToDto)
         .collect(Collectors.toList());
     }
-    public SemestreResponseDTO guardar(SemestreResponseDTO dto){
+
+    public SemestreResponseDTO guardar(SemestreRequestDTO dto) { 
         try {
-            Semestre semestre = new Semestre();
-            semestre.setNombre_semestre(dto.getNombre_semestre().toUpperCase());
-            return mapToDto(semestreRepository.save(semestre));
-        }catch (Exception e) {
-            log.error("Error al guardar el semestre: {}", e.getMessage());
-            throw new RuntimeException("Error al guardar el semestre en la base de datos");
+            Semestre s = new Semestre();
+            s.setNombre_semestre(dto.getNombre_semestre().toUpperCase());
+            return mapToDto(semestreRepository.save(s));
+        } catch (Exception e) {
+            log.error("Error al guardar: {}", e.getMessage());
+            throw new RuntimeException("Error al crear semestre");
         }
     }
 }

@@ -3,6 +3,7 @@ package com.smartcampus.msAsignatura.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.smartcampus.msAsignatura.DTO.SemestreRequestDTO;
 import com.smartcampus.msAsignatura.DTO.SemestreResponseDTO;
 import com.smartcampus.msAsignatura.service.SemestreService;
 
@@ -29,7 +30,7 @@ public class SemestreController {
     }
 
     public ResponseEntity<SemestreResponseDTO> crear(@Valid @RequestBody 
-        SemestreResponseDTO dto){
+        SemestreRequestDTO dto){
         return ResponseEntity.ok(semestreService.guardar(dto));
     }
     
