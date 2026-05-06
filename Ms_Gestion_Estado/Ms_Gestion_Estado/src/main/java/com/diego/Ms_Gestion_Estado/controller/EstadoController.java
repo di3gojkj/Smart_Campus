@@ -27,6 +27,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/estados")
 public class EstadoController {
     private final EstadoService estadoService;
+    //creo los endpoints necesarios para el microservicio
+    //get, put,post,patch,delete
+
+    
 
     @GetMapping
     public ResponseEntity<List<EstadoResponseDTO>> obtenerTodos(){
@@ -44,7 +48,7 @@ public class EstadoController {
     }
 
     @PostMapping
-    public ResponseEntity<EstadoResponseDTO> crear(@Valid @RequestBody EstadoRequestDTO dto){
+    public ResponseEntity<EstadoResponseDTO> crear(@Valid @RequestBody EstadoRequestDTO dto){//@valid es validacdion de errores como el notblank
         return ResponseEntity.status(HttpStatus.CREATED).body(estadoService.guardar(dto));
     }
     

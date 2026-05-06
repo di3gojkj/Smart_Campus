@@ -14,7 +14,7 @@ import com.diego.Ms_Gestion_Estado.repository.EstadoRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor//Inyector de dependencias por constructor, remplaza el @Autowired
 public class EstadoService {
     private final EstadoRepository estadoRepository;
     
@@ -34,7 +34,7 @@ public class EstadoService {
     }
 
     public EstadoResponseDTO guardar(EstadoRequestDTO dto){
-        if (estadoRepository.findByNombreIgnoreCase(dto.getNombre()).isPresent()){
+        if (estadoRepository.findByNombreIgnoreCase(dto.getNombre()).isPresent()){//Antes de guardar, va a la base de datos a preguntar si ya existe ese nombre. Si existe, lanza un error para no tener la base de datos sucia.
             throw new RuntimeException("Ya existe un estado con el nombre: " + dto.getNombre());
         }
         Estado estado = new Estado(null, dto.getNombre().toUpperCase());

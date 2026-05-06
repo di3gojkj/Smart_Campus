@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class DataInitializer implements CommandLineRunner{
+public class DataInitializer implements CommandLineRunner{//ejecuta el microservicio en la BD automaticamente
 
     private final EstadoRepository estadoRepository;
 
