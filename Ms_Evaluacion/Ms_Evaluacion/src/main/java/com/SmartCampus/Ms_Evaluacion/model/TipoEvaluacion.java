@@ -26,6 +26,6 @@ public class TipoEvaluacion {
     private Long idTipoEvaluacion;
 
     @Column(name = "Nombre_Tipo", unique = true, nullable = false, length = 10)
-    private String nombreTipo; //Esto seran los nombres de la evaluacion. EJ: Certamen, Tarea, Control
+    private String nombreTipo; //Esto seran los nombres de la evaluacion. EJ: Certamen, Tarea, Control, Tarea
 
 }
