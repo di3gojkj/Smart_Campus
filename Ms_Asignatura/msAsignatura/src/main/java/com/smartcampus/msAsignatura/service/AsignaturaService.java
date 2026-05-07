@@ -42,7 +42,7 @@ public class AsignaturaService {
 
             Asignatura a = new Asignatura();
             a.setSigla(dto.getSigla().toUpperCase());
-            a.setNombre_asignatura(dto.getNombre().toUpperCase());
+            a.setNombre_asignatura(dto.getNombre_asigntura().toUpperCase());
             a.setIdEstado(dto.getIdEstado());               
             return mapToDto(asignaturaRepository.save(a));
         } catch (Exception e) {

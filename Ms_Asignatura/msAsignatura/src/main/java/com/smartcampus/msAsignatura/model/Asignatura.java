@@ -24,10 +24,10 @@ public class Asignatura {
     @Column(name = "id_asignatura")
     private Long id_Asignatura;
 
-    @Column(name = "nombre_asignatura", unique = true)
+    @Column(name = "nombre_asignatura", unique = true, nullable =false, length = 50)
     private String nombre_asignatura;
 
-    @Column(unique = true)
+    @Column(name = "Sigla", unique = true, nullable = false, length = 10)
     private String sigla;
 
     @Column(name = "ID_ESTADO") 

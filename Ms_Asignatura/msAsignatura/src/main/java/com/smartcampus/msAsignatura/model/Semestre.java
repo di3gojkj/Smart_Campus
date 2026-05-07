@@ -19,6 +19,6 @@ public class Semestre {
     @Column(name = "ID_Semestre")
     private Long idSemestre;
 
-    @Column(name = "NOMBRE")
+    @Column(name = "NOMBRE", nullable = false, length = 50)
     private String nombre_semestre;
 }

@@ -5,7 +5,6 @@ import com.smartcampus.msAsignatura.repository.AsignaturaRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import com.smartcampus.msAsignatura.service.AsignaturaService;
 import com.smartcampus.msAsignatura.service.SemestreService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 public class DataInitializer implements CommandLineRunner {
 
     private final AsignaturaRepository asignaturaRepository;
-    private final AsignaturaService asignaturaService;
     private final SemestreService semestreService;
 
 
