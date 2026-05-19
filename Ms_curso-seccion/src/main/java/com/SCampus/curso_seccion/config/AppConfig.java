@@ -1,5 +1,16 @@
 package com.SCampus.curso_seccion.config;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
 public class AppConfig {
+    //para que spring lo reconozca para
+    //la inyeccion de datos del repositorio
+    @Bean
+    public RestTemplate restTemplate(){
+        return new RestTemplate();
+    }
 
 }
