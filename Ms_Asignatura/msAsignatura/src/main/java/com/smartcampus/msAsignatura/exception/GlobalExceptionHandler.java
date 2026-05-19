@@ -1,0 +1,66 @@
+package com.smartcampus.msAsignatura.exception;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    /*Atrapa la asginatura cuando no se encuentra el id */
+
+    @ExceptionHandler(AsignaturaNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAsignaturaNotFound(AsignaturaNotFoundException ex, 
+        HttpServletRequest req){
+        logger.warn("Asignatura no encontrada: {}",ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(),
+        req.getRequestURI(), null));
+    }
+
+    /*Atrapa la semestre cuando no se encuentra el id */
+    @ExceptionHandler(SemestreNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleSemestreNotFound(SemestreNotFoundException ex,
+         HttpServletRequest req) {
+        logger.warn("Semestre no encontrado: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(),
+        req.getRequestURI(), null));
+    }
+
+    /*Atrapa errores de validacion (@NotBlank, @NotNull, @Size)*/
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDTO>handleValidaciones(MethodArgumentNotValidException ex,
+        HttpServletRequest req){
+            List<String> detalles = ex.getBindingResult().getFieldErrors().stream()
+            .map(err -> err.getField() + ": " + err.getDefaultMessage())
+            .collect(Collectors.toList());
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(construirError(HttpStatus.BAD_REQUEST,
+                     "Error de validacion en los datos enviados", req.getRequestURI(),detalles));
+        }
+    
+    private ErrorResponseDTO construirError(HttpStatus status, String mensaje,
+                                             String path, List<String> detalles) {
+        return new ErrorResponseDTO(
+                LocalDateTime.now(),
+                status.value(),
+                status.getReasonPhrase(),  // "Not Found", "Bad Request", etc.
+                mensaje,
+                path,
+                detalles
+        );
+    }
+}
+
