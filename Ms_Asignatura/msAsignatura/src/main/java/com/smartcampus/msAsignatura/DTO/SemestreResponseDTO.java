@@ -1,5 +1,7 @@
 package com.smartcampus.msAsignatura.DTO;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +12,10 @@ import lombok.NoArgsConstructor;
 public class SemestreResponseDTO {
     
     private Long idSemestre;
-    private String nombre_semestre;
+    private String nombre;
+    private Long idEstado; /*Se expone el Id referencial del otro MicroServicio */
 
+    @JsonProperty("ACTIVO") /* Fuerza a que en el JSON salga en mayúsculas */ 
+    private boolean Activo;
 
 }
