@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.smartcampus.msAsignatura.DTO.SemestreRequestDTO;
 import com.smartcampus.msAsignatura.DTO.SemestreResponseDTO;
+import com.smartcampus.msAsignatura.DTO.EstadoResponseDTO;
+import com.smartcampus.msAsignatura.client.EstadoClient;
 import com.smartcampus.msAsignatura.model.Semestre;
 import com.smartcampus.msAsignatura.repository.SemestreRepository;
 
@@ -25,10 +27,12 @@ public class SemestreService {
     private static final Logger logger = LoggerFactory.getLogger(SemestreService.class);
 
     private final SemestreRepository semestreRepository;
+    private final EstadoClient estadoClient;
 
 
-    public SemestreService(SemestreRepository semestreRepository) {
+    public SemestreService(SemestreRepository semestreRepository, EstadoClient estadoClient) {
         this.semestreRepository = semestreRepository;
+        this.estadoClient = estadoClient;
     }
 
     @Transactional(readOnly = true)
@@ -65,7 +69,7 @@ public class SemestreService {
         Semestre guardado = semestreRepository.save(semestre);
         logger.info("Semestre creado exitosamente con ID: {}", guardado.getIdSemestre());
         
-        return mapearAResponseDTO(semestre);
+        return mapearAResponseDTO(guardado);
     }
 
     @Transactional
@@ -89,6 +93,7 @@ public class SemestreService {
                 });
 
         semestre.setNombre(dto.getNombre());
+        semestre.setIdEstado(dto.getIdEstado());
         Semestre actualizado = semestreRepository.save(semestre);
         logger.info("Semestre ID: {} actualizado exitosamente", id);
         
@@ -99,9 +104,11 @@ public class SemestreService {
     public void eliminar(Long id) {
         logger.info("Eliminando Semestre ID: {}", id);
         if (!semestreRepository.existsById(id)) {
-            throw new RuntimeException("Semestre no encontrado con ID: " + id);
+            logger.warn("No se pudo eliminar. Semestre ID: {} no existe en la BD", id);
+            throw new RuntimeException("No se puede eliminar. Semestre no encontrado con ID: " + id);
         }
         semestreRepository.deleteById(id);
+        logger.info("Semestre ID: {} eliminado correctamente", id);
     }
 
 
@@ -112,9 +119,20 @@ public class SemestreService {
         dto.setIdEstado(s.getIdEstado());
 
         /* MAPEO INTELIGENTE: Si idEstado es 1L, el semestre esta ACTIVO. */ 
-        /* Se calcula al vuelo para salvarle las papas al Frontend. */
-        boolean esActivo = (s.getIdEstado() != null && s.getIdEstado() == 1L);
-        dto.setActivo(esActivo);
+        /* Funciona localmente sin depender de otros microservicios */
+        dto.setActivo(s.getIdEstado() != null && s.getIdEstado() == 1L);
+
+        // Intentamos obtener el nombre descriptivo del estado via Feign
+        try {
+            if (s.getIdEstado() != null) {
+                EstadoResponseDTO estado = estadoClient.obtenerEstadoPorId(s.getIdEstado());
+                dto.setNombreEstado(estado.getNombre());
+            }
+        } catch (Exception e) {
+            logger.error("Error al conectar con MS Gestión Estado para Semestre ID: {}. Error: {}", 
+            s.getIdSemestre(), e.getMessage());
+            dto.setNombreEstado("Estado no disponible");
+        }
 
         return dto;
     }
@@ -122,6 +140,7 @@ public class SemestreService {
     private Semestre mapearAEntidad(SemestreRequestDTO dto) {
         Semestre s = new Semestre();
         s.setNombre(dto.getNombre());
+        s.setIdEstado(dto.getIdEstado());
         return s;
     }
 }

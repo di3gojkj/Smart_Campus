@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.smartcampus.msAsignatura.DTO.AsignaturaRequestDTO;
 import com.smartcampus.msAsignatura.DTO.AsignaturaResponseDTO;
+import com.smartcampus.msAsignatura.DTO.EstadoResponseDTO;
+import com.smartcampus.msAsignatura.client.EstadoClient;
 import com.smartcampus.msAsignatura.model.Asignatura;
 import com.smartcampus.msAsignatura.repository.AsignaturaRepository;
 
@@ -21,9 +23,12 @@ public class AsignaturaService {
     private static final Logger logger = LoggerFactory.getLogger(AsignaturaService.class);
 
     private final AsignaturaRepository asignaturaRepository;
-    
-    public AsignaturaService(AsignaturaRepository asignaturaRepository) {
+    private final EstadoClient estadoClient;
+
+    // Inyección por constructor (Best Practice)
+    public AsignaturaService(AsignaturaRepository asignaturaRepository, EstadoClient estadoClient) {
         this.asignaturaRepository = asignaturaRepository;
+        this.estadoClient = estadoClient;
     }
 
     @Transactional(readOnly = true)
@@ -61,7 +66,7 @@ public class AsignaturaService {
         if (asignaturaRepository.findBySiglaIgnoreCase(dto.getSigla()).isPresent()) {
             logger.warn("Intento de duplicación de sigla académica: {}", dto.getSigla());
             throw new IllegalArgumentException("La sigla '" + dto.getSigla() +
-             "'ya está asignada a otra asignatura.");
+             "' ya está asignada a otra asignatura.");
         }
 
         Asignatura asignatura = mapearAEntidad(dto);
@@ -100,6 +105,7 @@ public class AsignaturaService {
         return mapearAResponseDTO(actualizada);
     }
 
+    @Transactional
     public void eliminar(Long id) {
         logger.info("Eliminando Asignatura ID: {}", id);
         if (!asignaturaRepository.existsById(id)) {
@@ -117,11 +123,22 @@ public class AsignaturaService {
         dto.setSigla(a.getSigla());
         dto.setIdEstado(a.getIdEstado());
 
-        /* MAPEO INTELIGENTE: Si idEstado es 1L, el semestre esta ACTIVO. */ 
-        /* Se calcula al vuelo para salvarle las papas al Frontend. */
-        boolean esActivo = (a.getIdEstado() != null && a.getIdEstado() == 1L);
-        dto.setActivo(esActivo);
+        /* MAPEO INTELIGENTE: Basado en el ID local */
+        dto.setActivo(a.getIdEstado() != null && a.getIdEstado() == 1L);
 
+        try {
+            if (a.getIdEstado() != null) {
+                // Enriquecemos con el nombre desde el otro MS
+                EstadoResponseDTO estado = estadoClient.obtenerEstadoPorId(a.getIdEstado());
+                dto.setNombreEstado(estado.getNombre());
+            }
+        } catch (Exception e) {
+            // Si el otro MS está abajo, no rompemos nuestro sistema. 
+            // Logeamos el error para saber qué pasó y tiramos un valor seguro.
+            logger.error("Se nos cayó la conexión con MS Gestión Estado para el ID: {}. Error: {}", 
+            a.getIdEstado(), e.getMessage());
+            dto.setNombreEstado("Estado no disponible");
+        }
         return dto;
     }
 
@@ -133,4 +150,3 @@ public class AsignaturaService {
         return a;
     }
 }
-

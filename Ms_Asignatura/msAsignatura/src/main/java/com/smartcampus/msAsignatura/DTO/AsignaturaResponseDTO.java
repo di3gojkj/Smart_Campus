@@ -18,6 +18,8 @@ public class AsignaturaResponseDTO {
     private String sigla;
     private Long idEstado; /*Se expone el Id referencial del otro MicroServicio */
 
+    private String nombreEstado; 
+    
     @JsonProperty("ACTIVO") /* Fuerza a que en el JSON salga en mayúsculas */ 
     private boolean Activo;
 

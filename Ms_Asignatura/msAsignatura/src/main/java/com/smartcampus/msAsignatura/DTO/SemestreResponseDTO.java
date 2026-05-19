@@ -14,8 +14,9 @@ public class SemestreResponseDTO {
     private Long idSemestre;
     private String nombre;
     private Long idEstado; /*Se expone el Id referencial del otro MicroServicio */
+    private String nombreEstado;
 
     @JsonProperty("ACTIVO") /* Fuerza a que en el JSON salga en mayúsculas */ 
-    private boolean Activo;
+    private boolean activo;
 
 }

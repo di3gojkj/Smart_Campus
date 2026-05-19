@@ -30,14 +30,14 @@ public class SemestreController {
 
     /* GET: para listar todos los semestres */
     @GetMapping
-    public ResponseEntity<List<SemestreResponseDTO>> ListarTodos() {
+    public ResponseEntity<List<SemestreResponseDTO>> listarTodos() {
         logger.debug("GET /api/semestres - Listando todo");
         return ResponseEntity.ok(semestreService.listarTodosCronologicos());   
     }
 
     /* GET: para Buscar por Id */
     @GetMapping("/{id}")
-    public ResponseEntity<SemestreResponseDTO> buscarPorId(@PathVariable long id){
+    public ResponseEntity<SemestreResponseDTO> buscarPorId(@PathVariable Long id){
         logger.debug("GET /api/semestres/{} - Buscando", id);
         return ResponseEntity.ok(semestreService.buscarPorId(id));
     }
@@ -54,7 +54,7 @@ public class SemestreController {
     /* PUT: Actualiza un semestre completo por ID */
     @PutMapping("/{id}")
     public ResponseEntity<SemestreResponseDTO> actualizar(@PathVariable Long id,
-        @Valid @RequestParam SemestreRequestDTO dto){
+        @Valid @RequestBody SemestreRequestDTO dto){
         logger.info("PUT /api/semestres/{} - Actualizando datos", id);
         return ResponseEntity.ok(semestreService.actualizar(id, dto));
     }
