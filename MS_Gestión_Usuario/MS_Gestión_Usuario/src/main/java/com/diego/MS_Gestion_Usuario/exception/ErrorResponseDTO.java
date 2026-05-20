@@ -1,4 +1,5 @@
 package com.diego.MS_Gestion_Usuario.exception;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
