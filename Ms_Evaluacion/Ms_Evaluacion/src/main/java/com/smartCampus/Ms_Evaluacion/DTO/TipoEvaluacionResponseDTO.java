@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class TipoEvaluacionResponseDTO {
 
     private Long idTipoEval;
-    private String nombre;
+    private String nombreTipo;
 }

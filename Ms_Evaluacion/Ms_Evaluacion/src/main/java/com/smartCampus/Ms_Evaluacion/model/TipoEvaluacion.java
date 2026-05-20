@@ -17,15 +17,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 @Entity
-@Table(name = "tipo_evaluacion")
+@Table(name = "Tipo_Evaluacion")
 public class TipoEvaluacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_Tipo_Evaluacion")
-    private Long id_Tipo_Evaluacion;
+    private Long idTipoEval;
 
-    @Column(name = "nombre_tipo", unique = true, nullable = false, length = 50)
-    private String nombreTipo; 
+    @Column(name = "Nombre_Tipo", unique = true, nullable = false, length = 10)
+    private String nombreTipo; //Esto seran los nombres de la evaluacion. EJ: Certamen, Tarea, Control, Tarea
 
 }

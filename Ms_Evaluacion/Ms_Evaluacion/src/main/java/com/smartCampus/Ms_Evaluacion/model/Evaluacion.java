@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 @Entity
-@Table(name = "evaluaciones")
+@Table(name = "Evaluacion")
 public class Evaluacion {
 
     @Id
@@ -26,14 +27,15 @@ public class Evaluacion {
     @Column(name = "Id_Evaluacion")
     private Long id_Evaluacion;
 
-    @Column(name = "nombre", nullable = false, unique = true, length = 100)
+    @Column(name = "nombre", nullable = false, unique = true, length = 50)
+    @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
     private String nombre;
 
     @Column(name = "porcentaje", nullable = false)
     private Double porcentaje;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_tipo_eval", nullable = false)
+    @JoinColumn(name = "id_Tipo_Evaluacion", nullable = false)
     private TipoEvaluacion tipoEvaluacion;
 
 }

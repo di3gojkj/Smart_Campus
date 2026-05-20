@@ -13,9 +13,8 @@ import com.smartCampus.Ms_Evaluacion.model.Evaluacion;
 public interface EvaluacionRepository 
 extends JpaRepository<Evaluacion,Long>{
 
-    // Buscar por tipo con join optimizado
-    @Query("SELECT e FROM Evaluacion e JOIN FETCH e.tipoEval t WHERE t.idTipoEval = :idTipo")
-    List<Evaluacion> findByTipo(@Param("idTipo") Long idTipo);
+    /** Valida si existe una evaluación por nombre (Ignora Mayúsculas/Minúsculas) */
+    boolean existsByNombreIgnoreCase(String nombre);
 
     // Filtro por nombre (parcial) y porcentaje mínimo
     @Query("SELECT e FROM Evaluacion e WHERE LOWER(e.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
@@ -24,10 +23,12 @@ extends JpaRepository<Evaluacion,Long>{
 
     // Validar duplicados para edición (excluyendo el id actual)
     @Query("SELECT COUNT(e) > 0 FROM Evaluacion e WHERE LOWER(e.nombre) = LOWER(:nombre) " +
-           "AND e.tipoEval.idTipoEval = :idTipo AND e.idEval <> :idExcluir")
+           "AND e.tipoEvaluacion.id_Tipo_Evaluacion = :idTipo AND e.id_Evaluacion <> :idExcluir")
     boolean existsByNameAndTipoExcludingId(@Param("nombre") String nombre, 
                                           @Param("idTipo") Long idTipo, 
                                           @Param("idExcluir") Long idExcluir);
 
-    
+    //Busca por el tipo de evaluacion
+    @Query("SELECT e FROM Evaluacion e WHERE e.tipoEvaluacion.id_Tipo_Evaluacion = :id")
+    List<Evaluacion> findByTipo(@Param("id") Long id);
 }
