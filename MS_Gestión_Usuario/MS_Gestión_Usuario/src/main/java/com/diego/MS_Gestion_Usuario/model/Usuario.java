@@ -38,7 +38,7 @@ public class Usuario {
     private Long idEstado;
 
     // Relación Muchos a Muchos interna con Roles (Mapea la tabla intermedia rol_user)
-    @ManyToMany(fetch = FetchType.EAGER) //DUDA IA EXPLICAR PROFE PLS
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "rol_user",
         joinColumns = @JoinColumn(name = "id_user"),
