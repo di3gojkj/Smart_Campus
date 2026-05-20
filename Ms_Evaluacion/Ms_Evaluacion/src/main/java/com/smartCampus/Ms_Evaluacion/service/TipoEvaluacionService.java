@@ -52,7 +52,7 @@ public class TipoEvaluacionService {
         }
 
         TipoEvaluacion tipo = new TipoEvaluacion();
-        tipo.setNombre(dto.getNombreTipo());
+        tipo.setNombreTipo(dto.getNombreTipo());
 
         TipoEvaluacion guardado = repository.save(tipo);
         logger.info("Tipo de evaluación creado con éxito, ID: {}", guardado.getIdTipoEval());
@@ -67,12 +67,12 @@ public class TipoEvaluacionService {
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró el tipo de evaluación a actualizar"));
 
         // Verificamos duplicado solo si el nombre cambió
-        if (!tipo.getNombre().equalsIgnoreCase(dto.getNombreTipo())
+        if (!tipo.getNombreTipo().equalsIgnoreCase(dto.getNombreTipo())
              && repository.existsByNombreIgnoreCase(dto.getNombreTipo())) {
             throw new IllegalStateException("El nombre ya está ocupado por otro tipo de evaluación");
         }
 
-        tipo.setNombre(dto.getNombreTipo());
+        tipo.setNombreTipo(dto.getNombreTipo());
         return toResponseDTO(repository.save(tipo));
     }
 
@@ -89,7 +89,7 @@ public class TipoEvaluacionService {
     private TipoEvaluacionResponseDTO toResponseDTO(TipoEvaluacion t) {
         TipoEvaluacionResponseDTO dto = new TipoEvaluacionResponseDTO();
         dto.setIdTipoEval(t.getIdTipoEval());
-        dto.setNombreTipo(t.getNombre());
+        dto.setNombreTipo(t.getNombreTipo());
         return dto;
     }
 }

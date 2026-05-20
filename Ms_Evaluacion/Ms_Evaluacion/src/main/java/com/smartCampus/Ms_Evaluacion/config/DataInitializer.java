@@ -29,13 +29,13 @@ public class DataInitializer implements CommandLineRunner{
             logger.info("Base de datos vacía. Iniciando carga de datos iniciales...");
 
             TipoEvaluacion t1 = new TipoEvaluacion();
-            t1.setNombre("Parcial");
+            t1.setNombreTipo("Parcial");
 
             TipoEvaluacion t2 = new TipoEvaluacion();
-            t2.setNombre("Control");
+            t2.setNombreTipo("Control");
 
             TipoEvaluacion t3 = new TipoEvaluacion();
-            t3.setNombre("Proyecto");
+            t3.setNombreTipo("Proyecto");
 
             tipoEvaluacionRepository.saveAll(List.of(t1, t2, t3));
             

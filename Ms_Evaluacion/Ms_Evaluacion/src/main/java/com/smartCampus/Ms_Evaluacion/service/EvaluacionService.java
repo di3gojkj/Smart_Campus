@@ -131,7 +131,7 @@ public class EvaluacionService {
         dto.setNombre(e.getNombre());
         dto.setPorcentaje(e.getPorcentaje());
         dto.setIdTipoEval(e.getTipoEvaluacion().getIdTipoEval());
-        dto.setNombreTipo(e.getTipoEvaluacion().getNombre());
+        dto.setNombreTipo(e.getTipoEvaluacion().getNombreTipo());
         return dto;
     }
 }
