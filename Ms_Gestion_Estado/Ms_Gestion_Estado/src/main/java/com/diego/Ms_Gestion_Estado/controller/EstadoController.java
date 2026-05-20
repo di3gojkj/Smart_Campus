@@ -37,22 +37,14 @@ public class EstadoController {
         return ResponseEntity.ok(estadoService.obtenerTodos());
     }
 
-
-
-
     @GetMapping("/{id}")
     public ResponseEntity<EstadoResponseDTO> obtenerPorId(@PathVariable("id") Long id) {
-        return estadoService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        // Si no se encuentra, la excepción gatilla el flujo automático del GlobalExceptionHandler
+        return ResponseEntity.ok(estadoService.obtenerPorId(id));
     }
 
     @PostMapping
     public ResponseEntity<EstadoResponseDTO> crear(@Valid @RequestBody EstadoRequestDTO dto){//@valid es validacdion de errores como el notblank
         return ResponseEntity.status(HttpStatus.CREATED).body(estadoService.guardar(dto));
     }
-    
-    
-    
-
 }
