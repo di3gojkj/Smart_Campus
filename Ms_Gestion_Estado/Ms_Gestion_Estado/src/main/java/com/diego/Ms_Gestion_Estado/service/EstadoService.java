@@ -1,13 +1,13 @@
 package com.diego.Ms_Gestion_Estado.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.diego.Ms_Gestion_Estado.dto.EstadoRequestDTO;
 import com.diego.Ms_Gestion_Estado.dto.EstadoResponseDTO;
+import com.diego.Ms_Gestion_Estado.exception.EstadoNotFoundException;
 import com.diego.Ms_Gestion_Estado.model.Estado;
 import com.diego.Ms_Gestion_Estado.repository.EstadoRepository;
 
@@ -29,8 +29,10 @@ public class EstadoService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<EstadoResponseDTO> obtenerPorId(Long id){
-        return estadoRepository.findById(id).map(this::mapToDTO);
+    public EstadoResponseDTO obtenerPorId(Long id) {
+        Estado estado = estadoRepository.findById(id)
+                .orElseThrow(() -> new EstadoNotFoundException(id));
+        return mapToDTO(estado);
     }
 
     public EstadoResponseDTO guardar(EstadoRequestDTO dto){
