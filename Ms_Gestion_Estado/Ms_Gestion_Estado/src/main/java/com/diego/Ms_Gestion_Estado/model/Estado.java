@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 public class Estado {
     @Id //Indica que es una llave primaria
     @GeneratedValue(strategy = GenerationType.IDENTITY)//indica que su valor sera autoincrementable
+    @Column(name = "id_estado")
     private Long idEstado;
 
     @Column(nullable = false, unique = true, length = 50)//Indica que el valor no puede ser nulo y que no pueden existir dos valores con el mismo nombre
