@@ -1,4 +1,4 @@
-package com.diego.MS_Gestion_Usuario.exception;
+package com.diego.MS_Gestion_Usuario.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,7 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import com.diego.MS_Gestion_Usuario.exception.ErrorResponseDTO;
+import com.diego.MS_Gestion_Usuario.exception.UsuarioNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
