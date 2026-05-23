@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.smartCampus.Ms_Carrera.DTO.SemestreResponseDTO;
 
-@FeignClient(name = "ms-asignatura", url = "${url.ms-asignatura}")
+@FeignClient(name = "ms-asignatura", url = "${ms-asignatura}")
 public interface SemestreClient {
 
     @GetMapping("/api/semestres/{id}")
