@@ -1,31 +1,28 @@
 package com.SCampus.curso_seccion.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
-@Table(name = "seccion")
+@Table(name = "secciones")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Seccion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El nombre no puede estar vacio")
-    @Size(max = 30, message = "El nombre no puede superar los 30 caracteres")
-    @Column(nullable = false, length = 30)
-    private String nomSec;
+    @NotBlank(message = "El nombre de la sección es obligatorio")
+    @Column(nullable = false, length = 50)
+    private String nombre;
 
+    @NotNull(message = "El ID de curso asociado es obligatorio")
+    @Column(name = "id_curso", nullable = false)
+    private Long idCurso;
 }
