@@ -1,4 +1,4 @@
-package com.universidad.inventario.exception;
+package MS.tipo_asistencia.exception;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
