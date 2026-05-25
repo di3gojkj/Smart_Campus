@@ -29,8 +29,8 @@ public class GlobalExceptionHandler {
     }
 
     /*Atrapa la semestre cuando no se encuentra el id */
-    @ExceptionHandler(CarreraAsignaturaNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleSemestreNotFound(CarreraAsignaturaNotFoundException ex,
+    @ExceptionHandler(CarreraNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleSemestreNotFound(CarreraNotFoundException ex,
          HttpServletRequest req) {
         logger.warn("Carrera-Asignatura no encontrada: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

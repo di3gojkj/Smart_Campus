@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.smartCampus.Ms_Carrera.DTO.EstadoResponseDTO;
 
-@FeignClient(name = "ms-gestion_Estado", url = "${ms.estado.url}")
+@FeignClient(name = "Ms-Gestion-Estado", url = "http://localhost:8080")
 public interface EstadoClient {
 
     @GetMapping("/api/estados/{id}")    

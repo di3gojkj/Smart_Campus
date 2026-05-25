@@ -1,4 +1,4 @@
-package com.diego.Ms_Gestion_Lista.exception;
+package Ms.confi.exception;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,35 +12,30 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private ErrorResponseDTO construirError(HttpStatus status, String mensaje, String path, List<String> detalles) {
         return new ErrorResponseDTO(LocalDateTime.now(), status.value(), status.getReasonPhrase(), mensaje, path, detalles);
     }
 
-    @ExceptionHandler(RegistroNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> manejarNoEncontrado(RegistroNotFoundException ex, HttpServletRequest request) {
-        logger.warn("Recurso académico no encontrado - Path: {} | Mensaje: {}", request.getRequestURI(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null));
-    }
-
+    // Atrapa errores de @Valid (ejemplo: correo vacío o sin formato @)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDTO> manejarValidaciones(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        List<String> errores = ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> String.format("Campo '%s': %s (Valor recibido: '%s')", error.getField(), error.getDefaultMessage(), error.getRejectedValue()))
+        List<String> erroresCampos = ex.getBindingResult().getFieldErrors().stream()
+            .map(error -> String.format("Campo '%s': %s", error.getField(), error.getDefaultMessage()))
             .collect(Collectors.toList());
 
-        logger.warn("Validación fallida en entrada académica - Path: {}", request.getRequestURI());
+        logger.warn("Intento de Login fallido por validación en {} - Errores: {}", request.getRequestURI(), erroresCampos);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(construirError(HttpStatus.BAD_REQUEST, "Los datos enviados no cumplen los requisitos académicos", request.getRequestURI(), errores));
+            .body(construirError(HttpStatus.BAD_REQUEST, "Las credenciales enviadas no cumplen el formato requerido", request.getRequestURI(), erroresCampos));
     }
 
+    // Atrapa errores cuando mandan un JSON mal escrito en Postman
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponseDTO> manejarJsonInvalido(HttpMessageNotReadableException ex, HttpServletRequest request) {
         logger.error("JSON Malformado recibido en el Path: {}", request.getRequestURI());
@@ -48,24 +43,21 @@ public class GlobalExceptionHandler {
             .body(construirError(HttpStatus.BAD_REQUEST, "El cuerpo de la petición tiene un formato JSON inválido", request.getRequestURI(), null));
     }
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponseDTO> manejarTipoIncorrecto(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
-        logger.warn("Tipo de parámetro incorrecto en la URL - Path: {}", request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(construirError(HttpStatus.BAD_REQUEST, "Parámetro de URL con formato o tipo inválido.", request.getRequestURI(), null));
-    }
-
+    // Atrapa errores de método (ej: intentar hacer un GET a un endpoint que es POST)
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponseDTO> manejarMetodoNoPermitido(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
         logger.warn("Método HTTP no soportado - Path: {}", request.getRequestURI());
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-            .body(construirError(HttpStatus.METHOD_NOT_ALLOWED, "El método HTTP utilizado no está permitido para esta ruta.", request.getRequestURI(), null));
+            .body(construirError(HttpStatus.METHOD_NOT_ALLOWED, "El método HTTP utilizado no está permitido para esta ruta de autenticación.", request.getRequestURI(), null));
     }
 
+    // Atrapa nuestras excepciones de negocio (ej: "Credenciales incorrectas" del AuthService)
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponseDTO> manejarConflictos(RuntimeException ex, HttpServletRequest request) {
-        logger.error("Conflicto o fallo de red - Path: {} | Mensaje: {}", request.getRequestURI(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI(), null));
+    public ResponseEntity<ErrorResponseDTO> manejarErroresDeAutenticacion(RuntimeException ex, HttpServletRequest request) {
+        logger.error("Fallo de Seguridad o Red - Path: {} | Mensaje: {}", request.getRequestURI(), ex.getMessage());
+        
+        // Retornamos 401 Unauthorized porque estamos en el contexto de Login
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(construirError(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI(), null));
     }
 }

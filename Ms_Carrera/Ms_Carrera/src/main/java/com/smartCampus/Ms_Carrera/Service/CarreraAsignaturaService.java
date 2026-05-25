@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.smartCampus.Ms_Carrera.Client.AsignaturaClient;
-import com.smartCampus.Ms_Carrera.Client.SemestreClient;
 import com.smartCampus.Ms_Carrera.DTO.CarreraAsignaturaRequestDTO;
 import com.smartCampus.Ms_Carrera.DTO.CarreraAsignaturaResponseDTO;
 import com.smartCampus.Ms_Carrera.Repository.CarreraAsignaturaRepository;
@@ -25,16 +24,14 @@ public class CarreraAsignaturaService {
     private final CarreraAsignaturaRepository repository;
     private final CarreraRespository carreraRepository;
     private final AsignaturaClient asignaturaClient;
-    private final SemestreClient semestreClient;
 
     public CarreraAsignaturaService(CarreraAsignaturaRepository repository,
                                     CarreraRespository carreraRepository,
-                                    AsignaturaClient asignaturaClient,
-                                    SemestreClient semestreClient) {
+                                    AsignaturaClient asignaturaClient
+                                    ) {
         this.repository = repository;
         this.carreraRepository = carreraRepository;
         this.asignaturaClient = asignaturaClient;
-        this.semestreClient = semestreClient;
     }
 
     @Transactional(readOnly = true)
@@ -116,8 +113,7 @@ public class CarreraAsignaturaService {
         }
 
         try {
-            var semestre = semestreClient.obtenerSemestrePorId(ca.getIdSemestre());
-            dto.setNombreSemestre(semestre.getNombre());
+            
         } catch (Exception e) {
             logger.error("Error al consultar MS Semestre (ID: {}): {}", ca.getIdSemestre(), e.getMessage());
             dto.setNombreSemestre("Nombre no disponible");
