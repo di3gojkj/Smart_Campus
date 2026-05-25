@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CursoRequestDTO {
-    @NotNull(message = "La fecha deve tener esta estructura: 00/00/00")
+    @NotNull(message = "La fecha debe tener esta estructura: 00/00/00")
     private String fechaCreacion;
     
 }

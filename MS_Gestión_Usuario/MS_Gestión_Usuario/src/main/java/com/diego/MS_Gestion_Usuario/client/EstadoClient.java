@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.diego.MS_Gestion_Usuario.dto.EstadoResponseDTO;
 import java.util.List;
 
-@FeignClient(name = "estado", url = "${ms.estado.url}")
+@FeignClient(name = "MS-Gestion-Usuario", url = "http://localhost:8083")
 public interface EstadoClient {
 
     // Contrato estricto para validar un estado individual por ID
