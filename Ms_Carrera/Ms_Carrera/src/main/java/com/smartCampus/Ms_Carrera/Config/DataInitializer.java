@@ -3,13 +3,13 @@ package com.smartCampus.Ms_Carrera.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
 import com.smartCampus.Ms_Carrera.Repository.CarreraAsignaturaRepository;
 import com.smartCampus.Ms_Carrera.Repository.CarreraRespository;
 import com.smartCampus.Ms_Carrera.model.Carrera;
-import com.smartCampus.Ms_Carrera.model.CarreraAsignatura;
 
+@Component
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
@@ -23,30 +23,37 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     @Override
-    @Transactional
-    public void run(String... args) throws Exception {
-        // Solo cargamos si está vacío para no duplicar datos
-        if (caRepository.count() == 0) {
-            logger.info("Iniciando carga de datos de prueba...");
-
-            // 1. Crear una Carrera de prueba
-            Carrera c1 = new Carrera();
-            c1.setNombre("Ingeniería en Informática");
-            c1.setSigla("INF-001");
-            carreraRepository.save(c1);
-
-            // 2. Crear relaciones (Simulando IDs de Asignaturas/Semestres externos)
-            // Asumimos IDs 101, 102 de Asignatura y 1, 2 de Semestre (que existen en tu otro MS)
-            crearRelacion(c1, 101L, 1L);
-            crearRelacion(c1, 102L, 1L);
-            crearRelacion(c1, 103L, 2L);
-
-            logger.info("Datos de prueba cargados exitosamente.");
+    public void run(String... args) {
+        // Guardia: Si ya hay datos, lo informamos y salimos.
+        if (caRepository.count() > 0) {
+            logger.info("DataInitializer: La base de datos de Carrera ya contiene registros. Omitiendo carga.");
+            return;
         }
+
+        logger.info("DataInitializer: Iniciando carga de datos de prueba para Carrera...");
+
+        // 1. Crear una Carrera de prueba
+        Carrera c1 = new Carrera();
+        c1.setNombre("Ingeniería en Informática");
+        c1.setSigla("INF-001");
+        c1.setIdEstado(1L);
+        carreraRepository.save(c1);
+        
+        logger.info("DataInitializer: Carrera creada: {}", c1.getNombre());
+
+        // 2. Crear relaciones
+        crearRelacion(c1, 101L, 1L);
+        crearRelacion(c1, 102L, 1L);
+        crearRelacion(c1, 103L, 2L);
+
+        logger.info("DataInitializer: Relaciones de Carrera-Asignatura cargadas exitosamente.");
+        logger.info("DataInitializer: ¡Sistema de Carrera listo para operar!");
     }
 
     private void crearRelacion(Carrera carrera, Long idAsig, Long idSem) {
-        CarreraAsignatura ca = new CarreraAsignatura();
+        // Asumiendo que tu modelo CarreraAsignatura tiene un constructor para esto
+        // O setter methods como tenías en tu código original
+        var ca = new com.smartCampus.Ms_Carrera.model.CarreraAsignatura();
         ca.setCarrera(carrera);
         ca.setIdAsignatura(idAsig);
         ca.setIdSemestre(idSem);

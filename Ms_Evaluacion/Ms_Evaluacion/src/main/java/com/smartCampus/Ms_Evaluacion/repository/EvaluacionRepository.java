@@ -23,12 +23,12 @@ extends JpaRepository<Evaluacion,Long>{
 
     // Validar duplicados para edición (excluyendo el id actual)
     @Query("SELECT COUNT(e) > 0 FROM Evaluacion e WHERE LOWER(e.nombre) = LOWER(:nombre) " +
-           "AND e.tipoEvaluacion.id_Tipo_Evaluacion = :idTipo AND e.id_Evaluacion <> :idExcluir")
-    boolean existsByNameAndTipoExcludingId(@Param("nombre") String nombre, 
-                                          @Param("idTipo") Long idTipo, 
-                                          @Param("idExcluir") Long idExcluir);
+       "AND e.tipoEvaluacion.idTipoEval = :idTipo AND e.id_Evaluacion <> :idExcluir")
+       boolean existsByNameAndTipoExcludingId(@Param("nombre") String nombre,
+                                       @Param("idTipo") Long idTipoEval,
+                                       @Param("idExcluir") Long idExcluir);
 
     //Busca por el tipo de evaluacion
-    @Query("SELECT e FROM Evaluacion e WHERE e.tipoEvaluacion.id_Tipo_Evaluacion = :id")
+    @Query("SELECT e FROM Evaluacion e WHERE e.tipoEvaluacion.id = :id")
     List<Evaluacion> findByTipo(@Param("id") Long id);
 }
