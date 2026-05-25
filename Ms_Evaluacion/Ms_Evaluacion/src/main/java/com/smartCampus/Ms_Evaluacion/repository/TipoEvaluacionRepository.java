@@ -14,12 +14,12 @@ public interface TipoEvaluacionRepository
 extends JpaRepository <TipoEvaluacion, Long>{
 
     // Validar existencia
-    boolean existsByNombreIgnoreCase(String nombre);
+    boolean existsByNombreTipoIgnoreCase(String nombreTipo);
 
     // Buscar por nombre
-    Optional<TipoEvaluacion> findByNombreIgnoreCase(String nombre);
+    Optional<TipoEvaluacion> findByNombreTipoIgnoreCase(String nombreTipo);
 
     // Conteo de evaluaciones por tipo
-    @Query("SELECT t.nombre, COUNT(e) FROM TipoEval t LEFT JOIN t.evaluaciones e GROUP BY t.nombre")
+    @Query("SELECT t.nombreTipo, COUNT(e) FROM TipoEvaluacion t LEFT JOIN t.Evaluacion e GROUP BY t.nombreTipo")
     List<Object[]> countEvaluacionesPorTipo();
 }

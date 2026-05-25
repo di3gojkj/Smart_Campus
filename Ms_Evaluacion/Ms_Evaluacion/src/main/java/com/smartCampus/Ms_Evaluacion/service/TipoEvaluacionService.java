@@ -46,7 +46,7 @@ public class TipoEvaluacionService {
     public TipoEvaluacionResponseDTO crear(TipoEvaluacionRequestDTO dto) {
         logger.info("Creando nuevo tipo de evaluación: {}", dto.getNombreTipo());
 
-        if (repository.existsByNombreIgnoreCase(dto.getNombreTipo())) {
+        if (repository.existsByNombreTipoIgnoreCase(dto.getNombreTipo())) {
             throw new IllegalStateException("Ya existe un tipo de evaluación con el nombre: "
              + dto.getNombreTipo());
         }
@@ -68,7 +68,7 @@ public class TipoEvaluacionService {
 
         // Verificamos duplicado solo si el nombre cambió
         if (!tipo.getNombreTipo().equalsIgnoreCase(dto.getNombreTipo())
-             && repository.existsByNombreIgnoreCase(dto.getNombreTipo())) {
+             && repository.existsByNombreTipoIgnoreCase(dto.getNombreTipo())) {
             throw new IllegalStateException("El nombre ya está ocupado por otro tipo de evaluación");
         }
 
