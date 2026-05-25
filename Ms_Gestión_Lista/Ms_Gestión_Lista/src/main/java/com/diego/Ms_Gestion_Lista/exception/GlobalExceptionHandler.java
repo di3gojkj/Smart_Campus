@@ -7,9 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -30,7 +33,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDTO> manejarValidaciones(MethodArgumentNotValidException ex, HttpServletRequest request) {
         List<String> errores = ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> String.format("Campo '%s': %s", error.getField(), error.getDefaultMessage()))
+            .map(error -> String.format("Campo '%s': %s (Valor recibido: '%s')", error.getField(), error.getDefaultMessage(), error.getRejectedValue()))
             .collect(Collectors.toList());
 
         logger.warn("Validación fallida en entrada académica - Path: {}", request.getRequestURI());
@@ -38,11 +41,31 @@ public class GlobalExceptionHandler {
             .body(construirError(HttpStatus.BAD_REQUEST, "Los datos enviados no cumplen los requisitos académicos", request.getRequestURI(), errores));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseDTO> manejarJsonInvalido(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        logger.error("JSON Malformado recibido en el Path: {}", request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(construirError(HttpStatus.BAD_REQUEST, "El cuerpo de la petición tiene un formato JSON inválido", request.getRequestURI(), null));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> manejarTipoIncorrecto(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        logger.warn("Tipo de parámetro incorrecto en la URL - Path: {}", request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(construirError(HttpStatus.BAD_REQUEST, "Parámetro de URL con formato o tipo inválido.", request.getRequestURI(), null));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponseDTO> manejarMetodoNoPermitido(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        logger.warn("Método HTTP no soportado - Path: {}", request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+            .body(construirError(HttpStatus.METHOD_NOT_ALLOWED, "El método HTTP utilizado no está permitido para esta ruta.", request.getRequestURI(), null));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponseDTO> manejarConflictos(RuntimeException ex, HttpServletRequest request) {
-        logger.error("Conflicto o fallo de comunicación de red - Path: {} | Mensaje: {}", request.getRequestURI(), ex.getMessage());
+        logger.error("Conflicto o fallo de red - Path: {} | Mensaje: {}", request.getRequestURI(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI(), null));
     }
-
 }
