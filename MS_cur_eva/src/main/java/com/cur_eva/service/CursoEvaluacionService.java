@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import com.cur_eva.dto.CursoEvaluacionRequestDTO;
 import com.cur_eva.dto.CursoEvaluacionResponseDTO;
-import com.cur_eva.exception.CursoEvaluacionNotFoundException;
 import com.cur_eva.model.CursoEvaluacion;
 import com.cur_eva.repository.CursoEvaluacionRepository;
 
@@ -31,7 +30,7 @@ public class CursoEvaluacionService {
 
     public CursoEvaluacionResponseDTO obtenerPorId(Long id) {
         CursoEvaluacion cursoEvaluacion = cursoEvaluacionRepository.findById(id)
-                .orElseThrow(() -> new CursoEvaluacionNotFoundException(id));
+                .orElseThrow();
         return mapToDTO(cursoEvaluacion);
     }
 

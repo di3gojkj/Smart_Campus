@@ -3,8 +3,8 @@ package com.cur_eva.exception;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
-import org.hibernate.mapping.List;
-import org.hibernate.validator.internal.util.logging.LoggerFactory;
+import java.util.List;
+import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -12,7 +12,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import ch.qos.logback.classic.Logger;
+import com.cur_eva.model.CursoEvaluacion;
+
+import org.slf4j.LoggerFactory;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -31,9 +33,10 @@ public class GlobalExceptionHandler {
         );
     }
 
+
     @ExceptionHandler(CursoEvaluacionNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> manejarEstadoNoEncontrado(CursoEvaluacionNotFoundException ex, HttpServletRequest request) {
-        logger.warn("Recurso No Encontrado - ID Estado: {} | Path: {}", ex.getEstadoId(), request.getRequestURI());
+    public ResponseEntity<ErrorResponseDTO> manejarCursoEvaluacionNoEncontrado(CursoEvaluacionNotFoundException ex, HttpServletRequest request) {
+        logger.warn("Recurso No Encontrado - ID Curso Evaluacion: {} | Path: {}", ex.getCursoEvaluacionId(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null));
     }
