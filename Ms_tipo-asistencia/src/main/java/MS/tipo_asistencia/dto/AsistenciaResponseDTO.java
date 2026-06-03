@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data 
-@NoArgsConstructor 
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class AsistenciaResponseDTO {
-
-    private Long id;
+    private Long idAsistencia;
     private String fecha;
-
+    private TipoResponseDTO tipo;
 }
+
+

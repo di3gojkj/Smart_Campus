@@ -1,10 +1,9 @@
 package MS.tipo_asistencia.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.hibernate.validator.internal.util.logging.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,11 +11,13 @@ import MS.tipo_asistencia.dto.TipoRequestDTO;
 import MS.tipo_asistencia.dto.TipoResponseDTO;
 import MS.tipo_asistencia.model.Tipo;
 import MS.tipo_asistencia.repository.TipoRepository;
-import ch.qos.logback.classic.Logger;
+import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TipoService {
 
     private static final Logger logger = LoggerFactory.getLogger(TipoService.class);
@@ -24,12 +25,8 @@ public class TipoService {
     private final TipoRepository TipoRepository;
     
 
-    private TipoResponseDTO mapToDTO(Tipo t) {
-        return new TipoResponseDTO(t.getIdTipo(), t.getNombre());
-    }
-
     @Transactional(readOnly = true)
-    public List<TipoResponseDTO> listarTodas() {
+    public List<TipoResponseDTO> obtenerTodas() {
         logger.info("Listando todos los tipos");
         return TipoRepository.findAll().stream()
                 .map(this::toResponseDTO)
@@ -37,7 +34,7 @@ public class TipoService {
     }
 
     @Transactional(readOnly = true)
-    public TipoResponseDTO buscarPorId(Long id) {
+    public TipoResponseDTO obtenerPorId(Long id) {
         logger.info("Buscando tipo con ID: {}", id);
         Tipo tipo = TipoRepository.findById(id)
                 .orElseThrow(() -> {
@@ -69,7 +66,7 @@ public class TipoService {
                 });
 
         tipo.setNombre(dto.getNombre());
-        tipo.setIdTipo(dto.getIdTipo());
+        
 
         Tipo actualizada = TipoRepository.save(tipo);
         logger.info("Carrera ID: {} actualizada exitosamente", id);
@@ -91,7 +88,7 @@ public class TipoService {
     private TipoResponseDTO toResponseDTO(Tipo t) {
         TipoResponseDTO dto = new TipoResponseDTO();
         dto.setIdTipo(t.getIdTipo());
-        dto.setNombre(t.getNombre());
+    
 
         return dto;
     }
@@ -99,7 +96,7 @@ public class TipoService {
     private Tipo mapearAEntidad(TipoRequestDTO dto) {
         Tipo t = new Tipo();
         t.setNombre(dto.getNombre());
-        t.setIdTipo(dto.getIdTipo());
+        t.setIdTipo(dto.getTipoId());
         return t;
     }
 

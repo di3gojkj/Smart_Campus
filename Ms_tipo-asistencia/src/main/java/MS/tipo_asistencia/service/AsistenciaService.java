@@ -1,84 +1,113 @@
 package MS.tipo_asistencia.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import MS.tipo_asistencia.dto.AsistenciaRequestDTO;
 import MS.tipo_asistencia.dto.AsistenciaResponseDTO;
+import MS.tipo_asistencia.dto.TipoResponseDTO;
 import MS.tipo_asistencia.model.Asistencia;
 import MS.tipo_asistencia.model.Tipo;
 import MS.tipo_asistencia.repository.AsistenciaRepository;
 import MS.tipo_asistencia.repository.TipoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AsistenciaService {
-    private static final Logger logger = LoggerFactory.getLogger(AsistenciaService.class);
 
     private final AsistenciaRepository asistenciaRepository;
-    private final TipoService tipoService;
     private final TipoRepository tipoRepository;
 
-    public AsistenciaService(AsistenciaRepository repository,
-                                    TipoRespository TipoRepository) {
-        this.repository = repository;
-        this.tipoRepository = tipoRepository;
-        
-    }
-
-
-
-
-
-
-
-
-
-
-
-    public List<AsistenciaResponseDTO> obtenerTodos() {
+    @Transactional(readOnly = true)
+    public List<AsistenciaResponseDTO> obtenerTodas() {
+        log.info("Listando todas las asistencias");
         return asistenciaRepository.findAll().stream()
-                .map(this::mapToDTO).collect(Collectors.toList());
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
-
-
-
-
-
-
-    public Optional<AsistenciaResponseDTO> obtenerPorId(Long id) {
-        return asistenciaRepository.findById(id).map(this::mapToDTO);
+    @Transactional(readOnly = true)
+    public AsistenciaResponseDTO obtenerPorId(Long id) {
+        log.info("Buscando asistencia con ID: {}", id);
+        Asistencia asistencia = asistenciaRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Asistencia no encontrada con ID: {}", id);
+                    return new RuntimeException("Asistencia no encontrada con ID: " + id);
+                });
+        return toResponseDTO(asistencia);
     }
 
-    public List<AsistenciaResponseDTO> obtenerPorTipo(Long tipoId) {
-        return asistenciaRepository.findByTipoId(tipoId)
-                .stream().map(this::mapToDTO).collect(Collectors.toList());
+    @Transactional
+    public AsistenciaResponseDTO crear(AsistenciaRequestDTO dto) {
+        log.info("Creando nueva asistencia para la fecha: {}", dto.getFecha());
+
+        Tipo tipo = tipoRepository.findById(dto.getTipoId())
+                .orElseThrow(() -> new RuntimeException("No se puede crear asistencia. Tipo ID " + dto.getTipoId() + " no existe"));
+
+        Asistencia asistencia = mapearAEntidad(dto, tipo);
+        Asistencia guardada = asistenciaRepository.save(asistencia);
+        log.info("Asistencia creada exitosamente con ID: {}", guardada.getIdAsistencia());
+
+        return toResponseDTO(guardada);
     }
 
-     public AsistenciaResponseDTO guardar(AsistenciaRequestDTO dto) {
-        Tipo tipo = tipoService.buscarEntidadPorId(dto.getTipoId());
-        Asistencia a = new Asistencia(null, dto.getFecha(), tipo);
-        return mapToDTO(asistenciaRepository.save(a));
+    @Transactional
+    public AsistenciaResponseDTO actualizar(Long id, AsistenciaRequestDTO dto) {
+        log.info("Actualizando asistencia con ID: {}", id);
+
+        Asistencia asistencia = asistenciaRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("No se pudo actualizar. Asistencia ID: {} no existe", id);
+                    return new RuntimeException("Asistencia no encontrada con ID: " + id);
+                });
+
+        Tipo tipo = tipoRepository.findById(dto.getTipoId())
+                .orElseThrow(() -> new RuntimeException("Tipo ID " + dto.getTipoId() + " no existe"));
+
+        asistencia.setFecha(dto.getFecha());
+        asistencia.setTipo(tipo);
+
+        Asistencia actualizada = asistenciaRepository.save(asistencia);
+        log.info("Asistencia ID: {} actualizada exitosamente", id);
+
+        return toResponseDTO(actualizada);
     }
 
-    public Optional<AsistenciaResponseDTO> actualizar(Long id, AsistenciaRequestDTO dto) {
-        return asistenciaRepository.findById(id).map(existente -> {
-            Tipo tipo = tipoService.buscarEntidadPorId(dto.getTipoId());
-            existente.setFecha(dto.getFecha());
-            existente.setTipo(tipo);
-            return mapToDTO(asistenciaRepository.save(existente));
-        });
-    }
-
-     public void eliminar(Long id) {
+    @Transactional
+    public void eliminar(Long id) {
+        log.info("Eliminando asistencia con ID: {}", id);
+        if (!asistenciaRepository.existsById(id)) {
+            log.warn("No se pudo eliminar. Asistencia ID: {} no existe", id);
+            throw new RuntimeException("No se puede eliminar. Asistencia no encontrada con ID: " + id);
+        }
         asistenciaRepository.deleteById(id);
+        log.info("Asistencia ID: {} eliminada correctamente", id);
     }
 
+    private AsistenciaResponseDTO toResponseDTO(Asistencia a) {
+        AsistenciaResponseDTO dto = new AsistenciaResponseDTO();
+        dto.setIdAsistencia(a.getIdAsistencia());
+        dto.setFecha(a.getFecha());
+        
+        if (a.getTipo() != null) {
+            TipoResponseDTO tipoDTO = new TipoResponseDTO();
+            tipoDTO.setIdTipo(a.getTipo().getIdTipo());
+            tipoDTO.setNombre(a.getTipo().getNombre());
+            dto.setTipo(tipoDTO);
+        }
+        return dto;
+    }
+
+    private Asistencia mapearAEntidad(AsistenciaRequestDTO dto, Tipo tipo) {
+        Asistencia a = new Asistencia();
+        a.setFecha(dto.getFecha());
+        a.setTipo(tipo);
+        return a;
+    }
 }

@@ -2,6 +2,7 @@ package MS.tipo_asistencia.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/tipo")
 @RequiredArgsConstructor
 public class TipoController {
+
     private final TipoService tipoService;
 
     @GetMapping
@@ -31,29 +33,29 @@ public class TipoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TipoResponseDTO> obtenerPorId(@PathVariable Long id) {
-        return tipoService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        
+        TipoResponseDTO response = tipoService.obtenerPorId(id);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<TipoResponseDTO> crear(
-            @Valid @RequestBody TipoRequestDTO dto) {
-        return ResponseEntity.status(201).body(tipoService.guardar(dto));
+    public ResponseEntity<TipoResponseDTO> crear(@Valid @RequestBody TipoRequestDTO dto) {
+        // Mejorado: Uso de HttpStatus.CREATED para mayor claridad semántica (201)
+        return ResponseEntity.status(HttpStatus.CREATED).body(tipoService.crear(dto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TipoResponseDTO> actualizar(
-            @PathVariable Long id, @Valid @RequestBody TipoRequestDTO dto) {
-        return tipoService.actualizar(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            @PathVariable Long id, 
+            @Valid @RequestBody TipoRequestDTO dto) {
+       
+        TipoResponseDTO response = tipoService.actualizar(id, dto);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        if (tipoService.obtenerPorId(id).isEmpty())
-            return ResponseEntity.notFound().build();
+        
         tipoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
