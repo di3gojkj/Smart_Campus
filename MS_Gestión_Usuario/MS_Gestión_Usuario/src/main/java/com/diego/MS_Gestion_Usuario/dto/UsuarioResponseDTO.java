@@ -15,4 +15,5 @@ public class UsuarioResponseDTO {
     private String correo;
     private Long idEstado;
     private Set<RolDTO> roles;
+    private String clave;
 }

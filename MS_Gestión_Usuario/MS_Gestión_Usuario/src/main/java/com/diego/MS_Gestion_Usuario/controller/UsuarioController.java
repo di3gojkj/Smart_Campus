@@ -32,6 +32,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.obtenerPorId(id));
     }
 
+    @GetMapping("/correo/{correo}")
+    public ResponseEntity<UsuarioResponseDTO> obtenerPorCorreo(@PathVariable("correo") String correo) {
+        logger.info("Recibida petición HTTP GET para buscar usuario por correo: {}", correo);
+        return ResponseEntity.ok(usuarioService.obtenerPorCorreo(correo));
+    }
+
     @PostMapping
     public ResponseEntity<UsuarioResponseDTO> crear(@Valid @RequestBody UsuarioRequestDTO dto) {
         logger.info("Recibida petición HTTP POST para registrar al usuario con RUT: {}", dto.getRut());

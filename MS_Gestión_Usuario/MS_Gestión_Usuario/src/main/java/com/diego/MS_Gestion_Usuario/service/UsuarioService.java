@@ -36,7 +36,7 @@ public class UsuarioService {
         Set<RolDTO> rolesDTO = u.getRoles().stream()
                 .map(r -> new RolDTO(r.getIdRol(), r.getNombre()))
                 .collect(Collectors.toSet());
-        return new UsuarioResponseDTO(u.getIdUsuario(), u.getRut(), u.getNombre(), u.getApellido(), u.getCorreo(), u.getIdEstado(), rolesDTO);
+        return new UsuarioResponseDTO(u.getIdUsuario(), u.getRut(), u.getNombre(), u.getApellido(), u.getCorreo(), u.getIdEstado(), rolesDTO, u.getClave());
     }
 
     @Transactional(readOnly = true)
@@ -68,6 +68,14 @@ public class UsuarioService {
                     logger.warn("Usuario con ID {} no existe en la base de datos", id);
                     return new UsuarioNotFoundException(id);
                 });
+    }
+    
+    @Transactional(readOnly = true)
+    public UsuarioResponseDTO obtenerPorCorreo(String correo) {
+        logger.info("Buscando usuario por correo: {}", correo);
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el correo: " + correo));
+        return mapToDTO(usuario);
     }
 
     @Transactional

@@ -26,7 +26,7 @@ public class AuthService {
         
         try {
             // 1. Simulación de recuperación mediante el cliente Feign (ID de prueba o ajuste por correo)
-            UsuarioDTO usuario = usuarioClient.obtenerUsuarioPorId(1L); 
+            UsuarioDTO usuario = usuarioClient.obtenerUsuarioPorCorreo(request.getCorreo()); 
             
             // 2. Validación de credenciales contra el passwordEncoder configurado en SecurityConfig
             if (!passwordEncoder.matches(request.getClave(), usuario.getClave())) {

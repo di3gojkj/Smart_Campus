@@ -11,4 +11,7 @@ public interface UsuarioClient {
     // Cambiar a endpoints específicos del MS de Usuarios si fuese necesario para buscar por correo
     @GetMapping("/api/usuarios/{id}")
     UsuarioDTO obtenerUsuarioPorId(@PathVariable("id") Long id);
+
+    @GetMapping("/api/usuarios/correo/{correo}")
+    UsuarioDTO obtenerUsuarioPorCorreo(@PathVariable("correo") String correo);
 }
