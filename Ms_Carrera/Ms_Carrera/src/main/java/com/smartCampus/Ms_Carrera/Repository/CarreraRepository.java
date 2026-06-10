@@ -12,16 +12,12 @@ import com.smartCampus.Ms_Carrera.model.Carrera;
 import feign.Param;
 
 @Repository
-public interface CarreraRespository extends
+public interface CarreraRepository extends
  JpaRepository <Carrera, Long> {
     
     /*Verifica la existencia de una carrera por la sigla, para evitar dupes */
 
     Optional<Carrera> findBySigla(String sigla);
-
-    /*Busca por el estado ACTIVO, INACTIVO, SUSPENDIDO */
-    @Query("SELECT c FROM Carrera c WHERE c.idEstado = :idEstado")
-    List<Carrera> findByEstado(@Param("idEstado") long idEstado);
 
     /*Busqueda flexible ya sea por Nombre o Sigla */
     @Query("SELECT c FROM Carrera c WHERE LOWER(c.nombre) LIKE LOWER(CONCAT('%', :filtro, '%'))" +

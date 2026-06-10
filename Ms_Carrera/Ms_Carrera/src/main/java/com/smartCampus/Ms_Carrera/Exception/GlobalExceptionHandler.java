@@ -17,25 +17,37 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /*Atrapa la asginatura cuando no se encuentra el id */
 
     @ExceptionHandler(CarreraAsignaturaNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleAsignaturaNotFound(CarreraAsignaturaNotFoundException ex, 
         HttpServletRequest req){
-        logger.warn("Carrera no encontrada: {}",ex.getMessage());
+        logger.warn("Carrera Asignatura no encontrada: {}",ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
         .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(),
         req.getRequestURI(), null));
     }
 
-    /*Atrapa la semestre cuando no se encuentra el id */
+    @ExceptionHandler(CarreraAsignaturaConflictException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAsignaturaConflict(CarreraAsignaturaConflictException ex, HttpServletRequest req) {
+        logger.warn("Conflicto en CarreraAsignatura: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI(), null));
+    }
+
     @ExceptionHandler(CarreraNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleSemestreNotFound(CarreraNotFoundException ex,
          HttpServletRequest req) {
-        logger.warn("Carrera-Asignatura no encontrada: {}", ex.getMessage());
+        logger.warn("Carrera no encontrada: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
         .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(),
         req.getRequestURI(), null));
+    }
+
+    @ExceptionHandler(CarreraConflictException.class)
+    public ResponseEntity<ErrorResponseDTO> handleCarreraConflict(CarreraConflictException ex, HttpServletRequest req) {
+        logger.warn("Conflicto en Carrera: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI(), null));
     }
 
     /*Atrapa errores de validacion (@NotBlank, @NotNull, @Size)*/
@@ -50,6 +62,7 @@ public class GlobalExceptionHandler {
                 .body(construirError(HttpStatus.BAD_REQUEST,
                      "Error de validacion en los datos enviados", req.getRequestURI(),detalles));
         }
+    
     
     private ErrorResponseDTO construirError(HttpStatus status, String mensaje,
                                              String path, List<String> detalles) {

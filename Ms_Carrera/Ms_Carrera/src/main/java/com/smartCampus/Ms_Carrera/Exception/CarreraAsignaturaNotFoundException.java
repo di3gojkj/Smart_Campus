@@ -7,7 +7,7 @@ public class CarreraAsignaturaNotFoundException extends RuntimeException {
     private final Long idCarreraAsignatura;
 
     public CarreraAsignaturaNotFoundException(Long id){
-        super("Carrera no encontrada por id" + id);
+        super("Carrera Asignatura no encontrada con ID" + id);
         this.idCarreraAsignatura = id;
     }
 

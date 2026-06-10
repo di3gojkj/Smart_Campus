@@ -11,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.smartCampus.Ms_Carrera.Client.AsignaturaClient;
 import com.smartCampus.Ms_Carrera.DTO.CarreraAsignaturaRequestDTO;
 import com.smartCampus.Ms_Carrera.DTO.CarreraAsignaturaResponseDTO;
+import com.smartCampus.Ms_Carrera.Exception.CarreraNotFoundException;
+import com.smartCampus.Ms_Carrera.Exception.CarreraAsignaturaConflictException;
+import com.smartCampus.Ms_Carrera.Exception.CarreraAsignaturaNotFoundException;
 import com.smartCampus.Ms_Carrera.Repository.CarreraAsignaturaRepository;
-import com.smartCampus.Ms_Carrera.Repository.CarreraRespository;
-import com.smartCampus.Ms_Carrera.model.Carrera;
+import com.smartCampus.Ms_Carrera.Repository.CarreraRepository;
 import com.smartCampus.Ms_Carrera.model.CarreraAsignatura;
 
 @Service
@@ -22,11 +24,11 @@ public class CarreraAsignaturaService {
     private static final Logger logger = LoggerFactory.getLogger(CarreraAsignaturaService.class);
 
     private final CarreraAsignaturaRepository repository;
-    private final CarreraRespository carreraRepository;
+    private final CarreraRepository carreraRepository;
     private final AsignaturaClient asignaturaClient;
 
     public CarreraAsignaturaService(CarreraAsignaturaRepository repository,
-                                    CarreraRespository carreraRepository,
+                                    CarreraRepository carreraRepository,
                                     AsignaturaClient asignaturaClient
                                     ) {
         this.repository = repository;
@@ -35,8 +37,7 @@ public class CarreraAsignaturaService {
     }
 
     @Transactional(readOnly = true)
-    public List<CarreraAsignaturaResponseDTO> listarPorCarrera(Long idCarrera) {
-        logger.info("Listando asignaturas para la carrera ID: {}", idCarrera);
+    public List<CarreraAsignaturaResponseDTO> listarTodas(Long idCarrera) {
         return repository.findByCarrera_IdCarrera(idCarrera).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
@@ -44,56 +45,61 @@ public class CarreraAsignaturaService {
 
     @Transactional
     public CarreraAsignaturaResponseDTO crear(CarreraAsignaturaRequestDTO dto) {
-        logger.info("Asignando asignatura {} a carrera {} en semestre {}", 
-                     dto.getIdAsignatura(), dto.getIdCarrera(), dto.getIdSemestre());
-
-        // Validamos que no sea un duplicado
-        if (repository.existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre(
-                dto.getIdCarrera(), dto.getIdAsignatura(), dto.getIdSemestre())) {
-            throw new IllegalArgumentException("Conflicto: Esta asignatura ya está asignada a esta carrera en este semestre.");
+    
+        boolean existe = repository.existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre(
+                            dto.getIdCarrera(), dto.getIdAsignatura(), dto.getIdSemestre());
+                            
+        if (existe) {
+            throw new CarreraAsignaturaConflictException("La asignatura ya esta asignada a esta carrera en este semestre.");
         }
 
-        // Buscamos la carrera local para la relación ManyToOne
-        Carrera carrera = carreraRepository.findById(dto.getIdCarrera())
-                .orElseThrow(() -> new IllegalArgumentException("Carrera no encontrada con ID: " + dto.getIdCarrera()));
-
-        CarreraAsignatura ca = new CarreraAsignatura();
-        ca.setCarrera(carrera);
-        ca.setIdAsignatura(dto.getIdAsignatura());
-        ca.setIdSemestre(dto.getIdSemestre());
-
-        return toResponseDTO(repository.save(ca));
+        CarreraAsignatura nuevaRelacion = new CarreraAsignatura();
+        nuevaRelacion.setCarrera(carreraRepository.findById(dto.getIdCarrera())
+                .orElseThrow(() -> new CarreraNotFoundException(dto.getIdCarrera())));
+        nuevaRelacion.setIdAsignatura(dto.getIdAsignatura());
+        nuevaRelacion.setIdSemestre(dto.getIdSemestre());
+        
+        CarreraAsignatura guardada = repository.save(nuevaRelacion);
+        logger.info("Relacion Carrera-Asignatura creada con ID: {}", guardada.getIdCarreraAsignatura());
+        return toResponseDTO(guardada);
     }
 
     @Transactional
     public CarreraAsignaturaResponseDTO actualizar(Long id, CarreraAsignaturaRequestDTO dto) {
-        logger.info("Actualizando relación Carrera-Asignatura con ID: {}", id);
-        
-        CarreraAsignatura existente = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No existe la relación con ID: " + id));
 
-        // Actualizamos los campos necesarios
-        existente.setIdAsignatura(dto.getIdAsignatura());
-        existente.setIdSemestre(dto.getIdSemestre());
+    CarreraAsignatura entidad = repository.findById(id)
+            .orElseThrow(() -> new CarreraAsignaturaNotFoundException(id));
 
-        // Si necesitas cambiar la carrera asociada (poco común pero posible):
-        if (!existente.getCarrera().getIdCarrera().equals(dto.getIdCarrera())) {
-             var nuevaCarrera = carreraRepository.findById(dto.getIdCarrera())
-                     .orElseThrow(() -> new IllegalArgumentException("Carrera no encontrada"));
-             existente.setCarrera(nuevaCarrera);
-        }
+    
+    boolean cambioIdentidad = !entidad.getCarrera().getIdCarrera().equals(dto.getIdCarrera()) ||
+                             !entidad.getIdAsignatura().equals(dto.getIdAsignatura()) ||
+                             !entidad.getIdSemestre().equals(dto.getIdSemestre());
 
-        return toResponseDTO(repository.save(existente));
+    if (cambioIdentidad && repository.existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre(
+            dto.getIdCarrera(), dto.getIdAsignatura(), dto.getIdSemestre())) {
+        throw new CarreraAsignaturaConflictException("Conflicto: Esta asignatura ya está asignada a esta carrera en el semestre indicado.");
+    }
+    
+    entidad.setIdAsignatura(dto.getIdAsignatura());
+    entidad.setIdSemestre(dto.getIdSemestre());
+    
+    if (!entidad.getCarrera().getIdCarrera().equals(dto.getIdCarrera())) {
+         var nuevaCarrera = carreraRepository.findById(dto.getIdCarrera())
+                 .orElseThrow(() -> new CarreraNotFoundException(dto.getIdCarrera()));
+         entidad.setCarrera(nuevaCarrera);
     }
 
+        return toResponseDTO(repository.save(entidad));
+    }
+
+    
     @Transactional
     public void eliminar(Long id) {
-        logger.info("Eliminando relación Carrera-Asignatura ID: {}", id);
         if (!repository.existsById(id)) {
-            throw new IllegalArgumentException("No se puede eliminar, ID inexistente: " + id);
+            throw new CarreraAsignaturaNotFoundException(id);
         }
         repository.deleteById(id);
-        logger.info("Relación eliminada exitosamente");
+        logger.info("Auditoría: Relación Carrera-Asignatura ID: {} eliminada", id);
     }
 
     private CarreraAsignaturaResponseDTO toResponseDTO(CarreraAsignatura ca) {
@@ -111,14 +117,8 @@ public class CarreraAsignaturaService {
             logger.error("Error al consultar MS Asignatura (ID: {}): {}", ca.getIdAsignatura(), e.getMessage());
             dto.setNombreAsignatura("Nombre no disponible");
         }
-
-        try {
-            
-        } catch (Exception e) {
-            logger.error("Error al consultar MS Semestre (ID: {}): {}", ca.getIdSemestre(), e.getMessage());
-            dto.setNombreSemestre("Nombre no disponible");
-        }
-
+        
         return dto;
     }
+
 }

@@ -6,7 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.smartCampus.Ms_Carrera.Repository.CarreraAsignaturaRepository;
-import com.smartCampus.Ms_Carrera.Repository.CarreraRespository;
+import com.smartCampus.Ms_Carrera.Repository.CarreraRepository;
 import com.smartCampus.Ms_Carrera.model.Carrera;
 
 @Component
@@ -15,9 +15,9 @@ public class DataInitializer implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
     private final CarreraAsignaturaRepository caRepository;
-    private final CarreraRespository carreraRepository;
+    private final CarreraRepository carreraRepository;
 
-    public DataInitializer(CarreraAsignaturaRepository caRepository, CarreraRespository carreraRepository) {
+    public DataInitializer(CarreraAsignaturaRepository caRepository, CarreraRepository carreraRepository) {
         this.caRepository = caRepository;
         this.carreraRepository = carreraRepository;
     }
