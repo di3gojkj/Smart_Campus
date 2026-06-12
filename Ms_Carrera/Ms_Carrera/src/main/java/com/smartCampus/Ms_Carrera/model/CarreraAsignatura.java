@@ -32,7 +32,7 @@ public class CarreraAsignatura {
         example = "1",
         accessMode =Schema.AccessMode.READ_ONLY
     )
-    private long idCarreraAsignatura;
+    private Long idCarreraAsignatura;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_carrera", nullable = false)

@@ -59,7 +59,7 @@ public class Carrera {
     @Column(name = "id_estado", nullable = false)
     @Schema(
         description = "Id del micro servicio de Gestion Estado ",
-        example = "1l"
+        example = "1"
     )
     private Long idEstado;
 }
