@@ -3,8 +3,7 @@ package com.smartCampus.Ms_Carrera.Controller;
 import java.util.List;
 
 import org.springframework.http.MediaType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 )
 public class CarreraController {
 
-    private static final Logger logger = LoggerFactory.getLogger(CarreraController.class);
     private final CarreraService carreraService;
 
 

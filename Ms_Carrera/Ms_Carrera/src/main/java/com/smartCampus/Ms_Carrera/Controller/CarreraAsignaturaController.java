@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/carrera-asignatura")
+@RequestMapping("/api/carrera-asignaturas")
 @Slf4j
 @RequiredArgsConstructor
 @Tag(name = "Carrera-Asignatura",
@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 )
 
 public class CarreraAsignaturaController {
+    
     private final CarreraAsignaturaService service;
 
 
@@ -86,7 +87,7 @@ public class CarreraAsignaturaController {
     })
     @PostMapping
     public ResponseEntity<CarreraAsignaturaResponseDTO> crear(@RequestBody CarreraAsignaturaRequestDTO dto) {
-        log.info("[CarreraAsignaturaController] POST creando relación");
+        log.info("[CarreraAsignaturaController] POST creando relacion");
         CarreraAsignaturaResponseDTO creado = service.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }

@@ -16,7 +16,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.smartCampus.Ms_Carrera.DTO.CarreraRequestDTO;
 import com.smartCampus.Ms_Carrera.DTO.CarreraResponseDTO;
 import com.smartCampus.Ms_Carrera.Repository.CarreraRepository;
 import com.smartCampus.Ms_Carrera.model.Carrera;
@@ -33,12 +32,10 @@ public class CarreraServiceTest {
     private CarreraService carreraService;
 
     private Carrera carreraEjemplo;
-    private CarreraRequestDTO dtoEjemplo;
 
     @BeforeEach
     void setUp() {
         carreraEjemplo = new Carrera(1L, "Ingenieria en Informatica", "INF-001", 1L);
-        dtoEjemplo = new CarreraRequestDTO("Ingenieria en Informatica","INF-001",1L);
     }
 
     @Test

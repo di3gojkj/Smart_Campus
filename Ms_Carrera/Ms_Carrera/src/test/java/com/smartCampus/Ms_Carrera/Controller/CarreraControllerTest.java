@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,9 +22,8 @@ import com.smartCampus.Ms_Carrera.DTO.CarreraRequestDTO;
 import com.smartCampus.Ms_Carrera.DTO.CarreraResponseDTO;
 import com.smartCampus.Ms_Carrera.Service.CarreraService;
 
-
-@WebMvcTest(CarreraControllerTest.class)
-@DisplayName("Tests del ProductoController con MockMvc")
+@WebMvcTest(CarreraController.class)
+@DisplayName("Tests del CarreraController con MockMvc")
 public class CarreraControllerTest {
 
     @Autowired
@@ -42,9 +41,9 @@ public class CarreraControllerTest {
         when(carreraService.listarTodas()).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/carreras")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].nombre").value("Ingenieria en Informatica"));
     }
 

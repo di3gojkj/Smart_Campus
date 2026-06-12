@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smartCampus.Ms_Carrera.Client.EstadoClient;
 import com.smartCampus.Ms_Carrera.DTO.CarreraRequestDTO;
 import com.smartCampus.Ms_Carrera.DTO.CarreraResponseDTO;
 import com.smartCampus.Ms_Carrera.Exception.CarreraConflictException;
@@ -24,12 +23,9 @@ public class CarreraService {
     private static final Logger logger = LoggerFactory.getLogger(CarreraService.class);
 
     private final CarreraRepository carreraRepository;
-    private final EstadoClient estadoClient;
 
-    public CarreraService(CarreraRepository carreraRepository,
-        EstadoClient estadoClient){
+    public CarreraService(CarreraRepository carreraRepository){
         this.carreraRepository = carreraRepository;
-        this.estadoClient = estadoClient;
     }
 
     
