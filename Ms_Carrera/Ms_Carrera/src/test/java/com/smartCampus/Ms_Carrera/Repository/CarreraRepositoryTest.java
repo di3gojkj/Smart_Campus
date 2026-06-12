@@ -12,15 +12,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+
 import org.springframework.test.context.ActiveProfiles;
+
 
 import com.smartCampus.Ms_Carrera.model.Carrera;
 
 @DataJpaTest
 @ActiveProfiles("test")
 @DisplayName("Test del repositorio de Carreras en memoria")
+
 public class CarreraRepositoryTest {
 
     @Autowired
@@ -32,6 +35,7 @@ public class CarreraRepositoryTest {
     private Carrera carrera1;
     private Carrera carrera2;
 
+    
     @BeforeEach
     void setUp() {
         // Insertamos datos base para probar
@@ -41,6 +45,7 @@ public class CarreraRepositoryTest {
         carrera2 = entityManager.persistAndFlush(
             new Carrera(null,"Mecanica Automotriz","MCN-001",1L));
     }
+            
 
     /*TEST PARA findAll() -- Heredado de JPArepository */
     @Test

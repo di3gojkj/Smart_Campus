@@ -23,6 +23,8 @@ import com.smartCampus.Ms_Carrera.model.Carrera;
 import com.smartCampus.Ms_Carrera.model.CarreraAsignatura;
 
 
+
+
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Test UNIT de CarreraAsignaturaService")
 public class CarreraAsignaturaServiceTest {
@@ -34,6 +36,7 @@ public class CarreraAsignaturaServiceTest {
     private CarreraAsignaturaService carreraAsignaturaService;
 
     private CarreraAsignatura entidadEjemplo;
+    private Long idCarreraPrueba = 1L;
 
     @BeforeEach
     void setUp() {
@@ -44,25 +47,31 @@ public class CarreraAsignaturaServiceTest {
     @Test
     @DisplayName("FindAll() retorna la lista de DTO de todas las relaciones")
     void findAll_debeRetornarListaDeRelaciones() {
-        when(carreraAsignaturaRepository.findAll()).thenReturn(List.of(entidadEjemplo));
+        // CORRECCIÓN: Cambiar .findAll() por .findByCarrera_IdCarrera(idCarreraPrueba)
+        when(carreraAsignaturaRepository.findByCarrera_IdCarrera(idCarreraPrueba)).thenReturn(List.of(entidadEjemplo));
 
-        List<CarreraAsignaturaResponseDTO> resultado = carreraAsignaturaService.listarTodas(1L);
+        List<CarreraAsignaturaResponseDTO> resultado = carreraAsignaturaService.listarTodas(idCarreraPrueba);
 
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
         assertEquals(3L, resultado.get(0).getIdAsignatura());
-        verify(carreraAsignaturaRepository, times(1)).findAll();
+        
+        // CORRECCIÓN: Verificar el método correcto
+        verify(carreraAsignaturaRepository, times(1)).findByCarrera_IdCarrera(idCarreraPrueba);
     }
 
     @Test
     @DisplayName("findAll() debe retornar lista vacia cuando no hay relaciones")
     void findAll_debeRetornarListaVacia_SiNoHayRelaciones() {
-        when(carreraAsignaturaRepository.findAll()).thenReturn(List.of());
+        // CORRECCIÓN: Cambiar .findAll() por .findByCarrera_IdCarrera(idCarreraPrueba)
+        when(carreraAsignaturaRepository.findByCarrera_IdCarrera(idCarreraPrueba)).thenReturn(List.of());
 
-        List<CarreraAsignaturaResponseDTO> resultado = carreraAsignaturaService.listarTodas(1L);
+        List<CarreraAsignaturaResponseDTO> resultado = carreraAsignaturaService.listarTodas(idCarreraPrueba);
 
         assertNotNull(resultado);
         assertTrue(resultado.isEmpty());
-        verify(carreraAsignaturaRepository, times(1)).findAll();
+        
+        // CORRECCIÓN: Verificar el método correcto
+        verify(carreraAsignaturaRepository, times(1)).findByCarrera_IdCarrera(idCarreraPrueba);
     }
 }

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,7 +38,7 @@ public class CarreraAsignaturaControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    @DisplayName("GET /api/carreras-asignaturas debe retornar 200 y la lista")
+    @DisplayName("GET /api/carrera-asignaturas/carrera/{id} debe retornar 200 y la lista")
     void listar_debeRetornar200ConLista() throws Exception {
         CarreraAsignaturaResponseDTO dto = new CarreraAsignaturaResponseDTO();
         dto.setIdCarrera(1L);
@@ -51,7 +51,7 @@ public class CarreraAsignaturaControllerTest {
         when(carreraAsignaturaService.listarTodas(any())).thenReturn(List.of(dto));
 
         // Assert: Validamos la petición
-        mockMvc.perform(get("/api/carreras-asignaturas")
+        mockMvc.perform(get("/api/carrera-asignaturas/carrera/1")
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -71,7 +71,7 @@ public class CarreraAsignaturaControllerTest {
         
         when(carreraAsignaturaService.crear(any(CarreraAsignaturaRequestDTO.class))).thenReturn(response);
 
-        mockMvc.perform(post("/api/carreras-asignaturas").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/carrera-asignaturas").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.idCarrera").value(1));

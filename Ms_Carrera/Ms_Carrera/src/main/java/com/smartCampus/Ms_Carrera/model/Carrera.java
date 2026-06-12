@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @NoArgsConstructor
 
 @Entity
-@Table(name = "Carrera")
+@Table(name = "carrera")
 
 @Schema(description = "Entidad que representa una carrera Academica")
 public class Carrera {

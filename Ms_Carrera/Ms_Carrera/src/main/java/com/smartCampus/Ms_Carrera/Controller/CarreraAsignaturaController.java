@@ -86,7 +86,7 @@ public class CarreraAsignaturaController {
                 )
     })
     @PostMapping
-    public ResponseEntity<CarreraAsignaturaResponseDTO> crear(@RequestBody CarreraAsignaturaRequestDTO dto) {
+    public ResponseEntity<CarreraAsignaturaResponseDTO> crear(@Valid @RequestBody CarreraAsignaturaRequestDTO dto) {
         log.info("[CarreraAsignaturaController] POST creando relacion");
         CarreraAsignaturaResponseDTO creado = service.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);

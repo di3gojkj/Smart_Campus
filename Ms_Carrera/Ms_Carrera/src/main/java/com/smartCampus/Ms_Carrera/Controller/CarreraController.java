@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import com.smartCampus.Ms_Carrera.DTO.CarreraAsignaturaResponseDTO;
 import com.smartCampus.Ms_Carrera.DTO.CarreraRequestDTO;
 import com.smartCampus.Ms_Carrera.DTO.CarreraResponseDTO;
 import com.smartCampus.Ms_Carrera.Service.CarreraService;
@@ -134,7 +133,7 @@ public class CarreraController {
             description = "Carrera actualizada correctamente",
             content = @Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = @Schema(implementation = CarreraAsignaturaResponseDTO.class)
+                schema = @Schema(implementation = CarreraResponseDTO.class)
                 )
         ),
             @ApiResponse(

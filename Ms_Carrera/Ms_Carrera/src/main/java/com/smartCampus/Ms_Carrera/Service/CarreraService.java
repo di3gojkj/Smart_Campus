@@ -56,7 +56,7 @@ public class CarreraService {
 
         
         if (carreraRepository.findBySigla(dto.getSigla()).isPresent()) {
-            throw new IllegalArgumentException("La sigla '" + dto.getSigla() + "' ya existe.");
+            throw new CarreraConflictException("La sigla '" + dto.getSigla() + "' ya existe.");
         }
 
         Carrera carrera = carreraRepository.save(mapearAEntidad(dto));

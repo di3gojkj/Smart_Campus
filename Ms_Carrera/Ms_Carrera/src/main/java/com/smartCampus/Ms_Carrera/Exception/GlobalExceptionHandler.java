@@ -1,6 +1,5 @@
 package com.smartCampus.Ms_Carrera.Exception;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CarreraNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleSemestreNotFound(CarreraNotFoundException ex,
+    public ResponseEntity<ErrorResponseDTO> handleCarreraNotFound(CarreraNotFoundException ex,
          HttpServletRequest req) {
         logger.warn("Carrera no encontrada: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
 
     /*Atrapa errores de validacion (@NotBlank, @NotNull, @Size)*/
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO>handleValidaciones(MethodArgumentNotValidException ex,
+    public ResponseEntity<ErrorResponseDTO> handleValidaciones(MethodArgumentNotValidException ex,
         HttpServletRequest req){
             List<String> detalles = ex.getBindingResult().getFieldErrors().stream()
             .map(err -> err.getField() + ": " + err.getDefaultMessage())
@@ -76,4 +76,3 @@ public class GlobalExceptionHandler {
         );
     }
 }
-
