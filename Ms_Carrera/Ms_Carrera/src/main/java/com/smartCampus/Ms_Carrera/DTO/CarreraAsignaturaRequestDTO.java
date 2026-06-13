@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+
+@Schema(
+    description = "DTO para crear o actualizar la relacion entre carrera y asignatura"
+)
 public class CarreraAsignaturaRequestDTO {
 
     @NotNull(message = "El ID de la carrera es obligatorio")

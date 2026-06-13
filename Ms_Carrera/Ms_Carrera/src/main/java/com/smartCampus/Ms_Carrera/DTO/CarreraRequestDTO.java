@@ -12,7 +12,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema (description = "DTO para crear o actualizar una carrera")
+@Schema (
+    description = "DTO para crear o actualizar una carrera"
+)
 public class CarreraRequestDTO {
     @NotBlank(message = "El nombre es obligatorio")
     @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")

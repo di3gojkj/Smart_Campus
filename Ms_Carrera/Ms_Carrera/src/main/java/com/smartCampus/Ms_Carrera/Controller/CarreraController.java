@@ -36,7 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "Carreras",
+@Tag(
+    name = "Carreras",
     description = "Gestion academica de carrera"
 )
 public class CarreraController {
@@ -136,13 +137,13 @@ public class CarreraController {
                 schema = @Schema(implementation = CarreraResponseDTO.class)
                 )
         ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Datos de entrada invalidos",
-                    content = @Content(
-                        mediaType = MediaType.APPLICATION_JSON_VALUE
-                    )
-                )
+        @ApiResponse(
+            responseCode = "400",
+            description = "Datos de entrada invalidos",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE
+            )
+        )
     })
     @PutMapping("/{id}")
     public ResponseEntity<CarreraResponseDTO> actualizar(@PathVariable Long id, 
@@ -160,10 +161,10 @@ public class CarreraController {
             responseCode = "204",
             description = "Carrera eliminada correctamente"
         ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Datos de entrada invalidos"
-                )
+        @ApiResponse(
+            responseCode = "400",
+            description = "Datos de entrada invalidos"
+        )
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {

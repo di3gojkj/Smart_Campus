@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+
+@Schema(
+    description = "DTO para retornar datos de la relacion entre carrera y asignatura al cliente"
+)
 public class CarreraAsignaturaResponseDTO {
 
     @Schema(

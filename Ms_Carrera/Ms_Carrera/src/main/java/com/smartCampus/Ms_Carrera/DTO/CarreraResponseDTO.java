@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+
+@Schema(
+    description = "DTO para retornar datos de la carrera al cliente"
+)
 public class CarreraResponseDTO {
 
     @Schema(description = "Id unico generado por la BD", 
