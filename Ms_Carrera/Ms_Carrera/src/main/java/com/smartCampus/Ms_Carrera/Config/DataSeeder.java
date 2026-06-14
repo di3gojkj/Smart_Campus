@@ -32,9 +32,9 @@ public class DataSeeder implements CommandLineRunner {
 
             /*Al crear las nuevas carreras la usaremos para generar la relacion */
 
-            carreraAsignaturaRepository.save(new CarreraAsignatura(null, carrera1, 5L, 1L));
+            carreraAsignaturaRepository.save(new CarreraAsignatura(null, carrera1, 1L, 1L));
             carreraAsignaturaRepository.save(new CarreraAsignatura(null, carrera1, 2L, 1L));
-            carreraAsignaturaRepository.save(new CarreraAsignatura(null, carrera2, 2L, 1L));
+            carreraAsignaturaRepository.save(new CarreraAsignatura(null, carrera2, 3L, 1L));
 
             log.info("[DataSeeder]: Datos iniciales cargados correctamente");
         } else {
