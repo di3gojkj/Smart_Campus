@@ -20,11 +20,17 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "Evaluacion")
+@Tag(name = )
 public class Evaluacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id_Evaluacion")
+    @Schema(
+        descripton = ("Identificador único de la evaluación"),
+        example = "1",
+        mediaType
+    )
     private Long id_Evaluacion;
 
     @Column(name = "nombre", nullable = false, unique = true, length = 50)
