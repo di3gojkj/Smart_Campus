@@ -22,11 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 public class AsistenciaService {
 
     private final AsistenciaRepository asistenciaRepository;
+    // CORREGIDO: El nombre de la variable debe empezar con minúscula 'tipoRepository'
     private final TipoRepository tipoRepository;
 
     @Transactional(readOnly = true)
     public List<AsistenciaResponseDTO> obtenerTodas() {
-        log.info("Listando todas las asistencias");
+        log.info("Listando todas las asistencias académicas");
         return asistenciaRepository.findAll().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
@@ -34,7 +35,7 @@ public class AsistenciaService {
 
     @Transactional(readOnly = true)
     public AsistenciaResponseDTO obtenerPorId(Long id) {
-        log.info("Buscando asistencia con ID: {}", id);
+        log.info("Buscando registro de asistencia con ID: {}", id);
         Asistencia asistencia = asistenciaRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Asistencia no encontrada con ID: {}", id);
@@ -81,7 +82,7 @@ public class AsistenciaService {
 
     @Transactional
     public void eliminar(Long id) {
-        log.info("Eliminando asistencia con ID: {}", id);
+        log.info("Intentando eliminar asistencia con ID: {}", id);
         if (!asistenciaRepository.existsById(id)) {
             log.warn("No se pudo eliminar. Asistencia ID: {} no existe", id);
             throw new RuntimeException("No se puede eliminar. Asistencia no encontrada con ID: " + id);
@@ -111,3 +112,4 @@ public class AsistenciaService {
         return a;
     }
 }
+
