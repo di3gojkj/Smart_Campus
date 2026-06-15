@@ -1,68 +1,40 @@
 package com.cur_eva.exception;
 
-import java.time.LocalDateTime;
-import java.util.stream.Collectors;
-
-import java.util.List;
-import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.cur_eva.model.CursoEvaluacion;
-
-import org.slf4j.LoggerFactory;
-import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    private ErrorResponseDTO construirError(HttpStatus status, String mensaje, String path, List<String> detalles) {
-        return new ErrorResponseDTO(
-            LocalDateTime.now(),
-            status.value(),
-            status.getReasonPhrase(),
-            mensaje,
-            path,
-            detalles
-        );
-    }
-
-
     @ExceptionHandler(CursoEvaluacionNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> manejarCursoEvaluacionNoEncontrado(CursoEvaluacionNotFoundException ex, HttpServletRequest request) {
-        logger.warn("Recurso No Encontrado - ID Curso Evaluacion: {} | Path: {}", ex.getCursoEvaluacionId(), request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null));
+    public ResponseEntity<Map<String, Object>> handleNotFound(CursoEvaluacionNotFoundException ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", LocalDateTime.now().toString());
+        error.put("status", HttpStatus.NOT_FOUND.value()); // 404
+        error.put("error", "Not Found");
+        error.put("message", ex.getMessage()); // "Producto con ID X no encontrado"
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO> manejarValidaciones(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        List<String> erroresCampos = ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> String.format("Campo '%s': %s (Valor rechazado: '%s')", error.getField(), error.getDefaultMessage(), error.getRejectedValue()))
-            .collect(Collectors.toList());
-
-        logger.warn("Validación fallida en {} {} - Errores detectados: {}", request.getMethod(), request.getRequestURI(), erroresCampos);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(construirError(HttpStatus.BAD_REQUEST, "Los datos de entrada contienen errores de validación", request.getRequestURI(), erroresCampos));
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponseDTO> manejarJsonInvalido(HttpMessageNotReadableException ex, HttpServletRequest request) {
-        logger.error("JSON Malformado recibido en el cuerpo de la petición en el Path: {}", request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(construirError(HttpStatus.BAD_REQUEST, "El cuerpo de la petición tiene un formato JSON inválido", request.getRequestURI(), null));
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponseDTO> manejarConflictos(RuntimeException ex, HttpServletRequest request) {
-        logger.error("Conflicto detectado en la lógica de negocio - Path: {} | Mensaje: {}", request.getRequestURI(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI(), null));
+    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
+        // Acumulamos los errores por campo: { "nombre": "no puede estar vacio", ... }
+        Map<String, String> fieldErrors = new HashMap<>();
+        for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
+            fieldErrors.put(fe.getField(), fe.getDefaultMessage());
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("status", HttpStatus.BAD_REQUEST.value()); // 400
+        response.put("error", "Validation Failed");
+        response.put("errors", fieldErrors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }
