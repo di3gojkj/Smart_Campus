@@ -19,7 +19,13 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.smartCampus.Ms_Carrera.model.Carrera;
 
-@DataJpaTest
+@DataJpaTest(properties = {
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.datasource.driver-class-name=org.h2.Driver",
+    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
+    "spring.cloud.openfeign.enabled=false"
+})
 @ActiveProfiles("test")
 @DisplayName("Test del repositorio de Carreras en memoria")
 

@@ -25,10 +25,4 @@ extends JpaRepository<Asignatura, Long> {
     @Query("SELECT a FROM Asignatura a WHERE a.idEstado = :idEstado ORDER BY a.nombre ASC")
     List<Asignatura> buscarPorEstadoOrdenadoAlfabeticamente(@Param("idEstado") Long idEstado);
 
-    /*Cuenta los ramos correspondientes a su estado 'ACTIVO, INACTIVO, SUSPENDIDO' */
-    @Query("SELECT COUNT(a) FROM Asignatura a WHERE a.idEstado = :idEstado")
-    long contarAsignaturasPorEstado(@Param("idEstado") Long idEstado);
-
-
-
 }

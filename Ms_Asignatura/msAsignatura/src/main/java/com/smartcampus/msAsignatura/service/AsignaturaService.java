@@ -12,6 +12,7 @@ import com.smartcampus.msAsignatura.client.EstadoClient;
 import com.smartcampus.msAsignatura.model.Asignatura;
 import com.smartcampus.msAsignatura.repository.AsignaturaRepository;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,16 +89,12 @@ public class AsignaturaService {
 
         dto.setActivo(a.getIdEstado() != null && a.getIdEstado() == 1L);
 
-        try {
-            if (a.getIdEstado() != null) {
-                EstadoResponseDTO estado = estadoClient.obtenerEstadoPorId(a.getIdEstado());
-                dto.setNombreEstado(estado.getNombre());
-            }
-        } catch (Exception e) {
-            logger.error("Se nos cayo la conexion con MS Gestion Estado para el ID: {}. Error: {}", 
-                    a.getIdEstado(), e.getMessage());
-            dto.setNombreEstado("Estado no disponible");
+        
+        if (a.getIdEstado() != null) {
+            EstadoResponseDTO estado = estadoClient.obtenerEstadoPorId(a.getIdEstado());
+            dto.setNombreEstado(estado.getNombre());
         }
+        
         return dto;
     }
 

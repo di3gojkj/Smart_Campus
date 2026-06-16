@@ -90,15 +90,10 @@ public class SemestreService {
 
         dto.setActivo(s.getIdEstado() != null && s.getIdEstado() == 1L);
 
-        try {
-            if (s.getIdEstado() != null) {
-                EstadoResponseDTO estado = estadoClient.obtenerEstadoPorId(s.getIdEstado());
-                dto.setNombreEstado(estado.getNombre());
-            }
-        } catch (Exception e) {
-            logger.error("Error al conectar con MS Gestion Estado para Semestre ID: {}. Error: {}", 
-                    s.getIdSemestre(), e.getMessage());
-            dto.setNombreEstado("Estado no disponible");
+        
+        if (s.getIdEstado() != null) {
+            EstadoResponseDTO estado = estadoClient.obtenerEstadoPorId(s.getIdEstado());
+            dto.setNombreEstado(estado.getNombre());
         }
         return dto;
     }

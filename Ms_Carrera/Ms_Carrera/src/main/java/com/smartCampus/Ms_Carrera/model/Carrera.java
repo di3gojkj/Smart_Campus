@@ -27,7 +27,7 @@ public class Carrera {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Id_Carrera")
+    @Column(name = "id_carrera")
     @Schema(description = "Id unico generado por la BD",
         example = "1",
         accessMode =Schema.AccessMode.READ_ONLY

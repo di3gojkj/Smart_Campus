@@ -26,7 +26,7 @@ public class CarreraAsignatura {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Id_Carrera_Asignatura")
+    @Column(name = "id_carrera_asignatura")
     @Schema(
         description = "Id de la relacion",
         example = "1",

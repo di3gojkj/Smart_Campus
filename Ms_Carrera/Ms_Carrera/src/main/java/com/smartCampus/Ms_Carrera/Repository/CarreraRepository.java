@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.smartCampus.Ms_Carrera.model.Carrera;
 
-import feign.Param;
+import org.springframework.data.repository.query.Param; 
 
 @Repository
 public interface CarreraRepository extends

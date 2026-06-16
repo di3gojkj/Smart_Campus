@@ -13,16 +13,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.smartCampus.Ms_Carrera.model.Carrera;
 import com.smartCampus.Ms_Carrera.model.CarreraAsignatura;
 
-@DataJpaTest
+@DataJpaTest(properties = {
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.datasource.driver-class-name=org.h2.Driver",
+    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
+    "spring.cloud.openfeign.enabled=false"
+})    
 @ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @DisplayName("Test de integracion: Relacion carreraAsignatura")
 public class CarreraAsignaturaRepositoryTest {
 
@@ -65,7 +69,7 @@ public class CarreraAsignaturaRepositoryTest {
     /*TEST PARA findById() -- Heredado de JPArepository */
     @Test
     @DisplayName("findById() debe retornar relación cuando el ID existe")
-    void findById_debeRetornarProducto_cuandoExiste(){
+    void findById_debeRetornarCarreraAsignatura_cuandoExiste(){
         Optional<CarreraAsignatura> resultado = carreraAsignaturaRepository.findById(rel1.getIdCarreraAsignatura());
 
         assertTrue(resultado.isPresent());
