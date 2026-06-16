@@ -36,7 +36,9 @@ public class UsuarioService {
         Set<RolDTO> rolesDTO = u.getRoles().stream()
                 .map(r -> new RolDTO(r.getIdRol(), r.getNombre()))
                 .collect(Collectors.toSet());
-        return new UsuarioResponseDTO(u.getIdUsuario(), u.getRut(), u.getNombre(), u.getApellido(), u.getCorreo(), u.getIdEstado(), rolesDTO, u.getClave());
+        
+        // Retornamos exactamente los 7 parámetros, omitiendo u.getClave() al final
+        return new UsuarioResponseDTO(u.getIdUsuario(), u.getRut(), u.getNombre(), u.getApellido(), u.getCorreo(), u.getIdEstado(), rolesDTO);
     }
 
     @Transactional(readOnly = true)
