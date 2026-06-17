@@ -18,7 +18,11 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.SCampus.curso_seccion.model.Curso;
 
-@DataJpaTest
+@DataJpaTest(properties = {
+    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
+    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
+})
 @ActiveProfiles("test")
 @DisplayName("Test del repositorio de cursos en memoria H2")
 public class CursoRepositoryTest {
