@@ -1,5 +1,6 @@
 package com.diego.Ms_Gestion_Estado.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,15 +15,17 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "estados") //Indica que la clase no es un objeto comun si no que se debe transformar en una tabla
+@Table(name = "estados")
+@Schema(description = "Entidad que representa los estados disponibles en el sistema (Ej: ACTIVO, INACTIVO)")
 public class Estado {
-    @Id //Indica que es una llave primaria
-    @GeneratedValue(strategy = GenerationType.IDENTITY)//indica que su valor sera autoincrementable
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_estado")
+    @Schema(description = "Identificador único del estado autogenerado", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Long idEstado;
 
-    @Column(nullable = false, unique = true, length = 50)//Indica que el valor no puede ser nulo y que no pueden existir dos valores con el mismo nombre
+    @Column(nullable = false, unique = true, length = 50)
+    @Schema(description = "Nombre descriptivo del estado en mayúsculas", example = "ACTIVO")
     private String nombre;
-
-
 }
