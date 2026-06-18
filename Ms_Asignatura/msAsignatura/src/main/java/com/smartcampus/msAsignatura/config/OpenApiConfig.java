@@ -19,7 +19,7 @@ public class OpenApiConfig {
             .version("1.0.0")
             .description("API REST para gestion de Asignaturas")
             .contact(new Contact()
-                .name("Tu Nombre/Equipo")
+                .name("SmartCampus Team")
                 .email("tu-email@gmail.com")))
             .addServersItem(new Server()
                 .url("http://localhost:8070")
