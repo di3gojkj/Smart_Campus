@@ -19,11 +19,9 @@ import org.springframework.test.context.ActiveProfiles;
 import com.smartcampus.msAsignatura.model.Semestre;
 
 @DataJpaTest(properties = {
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.datasource.url=jdbc:h2:mem:testdb",
-    "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-    "spring.cloud.openfeign.enabled=false"
+    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
 })
 @ActiveProfiles("test")
 @DisplayName("Test de Integración: SemestreRepository")
