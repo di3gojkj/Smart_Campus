@@ -50,6 +50,13 @@ public class GlobalExceptionHandler {
                 .body(construirError(HttpStatus.BAD_REQUEST,
                      "Error de validacion en los datos enviados", req.getRequestURI(),detalles));
         }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponseDTO> handleRuntimeException(RuntimeException ex, HttpServletRequest req) {
+        logger.warn("Recurso no encontrado: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(), req.getRequestURI(), null));
+    }
     
     private ErrorResponseDTO construirError(HttpStatus status, String mensaje,
                                              String path, List<String> detalles) {

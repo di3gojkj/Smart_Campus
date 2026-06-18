@@ -70,7 +70,10 @@ public class AsignaturaControllerTest {
     @Test
     @DisplayName("POST /api/asignaturas debe retornar 201 al crear")
     void crear_debeRetornar201() throws Exception {
-        AsignaturaRequestDTO req = new AsignaturaRequestDTO(); req.setNombre("Nueva Asignatura");
+        AsignaturaRequestDTO req = new AsignaturaRequestDTO(); 
+        req.setNombre("Nueva Asignatura");
+        req.setSigla("INF-230");      
+        req.setIdEstado(1L); 
         AsignaturaResponseDTO res = new AsignaturaResponseDTO(); res.setIdAsignatura(1L); res.setNombre("Nueva Asignatura");
         when(asignaturaService.crear(any(AsignaturaRequestDTO.class))).thenReturn(res);
 
@@ -84,7 +87,10 @@ public class AsignaturaControllerTest {
     @Test
     @DisplayName("PUT /api/asignaturas/{id} debe retornar 200 al actualizar")
     void actualizar_debeRetornar200() throws Exception {
-        AsignaturaRequestDTO req = new AsignaturaRequestDTO(); req.setNombre("Modificada");
+        AsignaturaRequestDTO req = new AsignaturaRequestDTO(); 
+        req.setNombre("Modificada");
+        req.setSigla("INF-999");      
+        req.setIdEstado(1L); 
         AsignaturaResponseDTO res = new AsignaturaResponseDTO(); res.setNombre("Modificada");
         when(asignaturaService.actualizar(eq(1L), any(AsignaturaRequestDTO.class))).thenReturn(res);
 

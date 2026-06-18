@@ -20,11 +20,9 @@ import org.springframework.test.context.ActiveProfiles;
 import com.smartCampus.Ms_Carrera.model.Carrera;
 
 @DataJpaTest(properties = {
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.datasource.url=jdbc:h2:mem:testdb",
-    "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-    "spring.cloud.openfeign.enabled=false"
+    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
 })
 @ActiveProfiles("test")
 @DisplayName("Test del repositorio de Carreras en memoria")
@@ -77,6 +75,67 @@ public class CarreraRepositoryTest {
     void findById_debeRetornarVacio_cuandoNoExiste(){
         Optional<Carrera> resultado = carreraRepository.findById(99999L);
 
+        assertFalse(resultado.isPresent());
+    }
+
+    /* 3. TEST PARA findBySigla() */
+    @Test
+    @DisplayName("findBySigla() debe retornar la carrera cuando la sigla existe")
+    void findBySigla_debeRetornarCarrera_cuandoExiste() {
+        Optional<Carrera> resultado = carreraRepository.findBySigla("INF-001");
+        assertTrue(resultado.isPresent());
+        assertEquals("Ingenieria en Informatica", resultado.get().getNombre());
+    }
+
+    @Test
+    @DisplayName("findBySigla() debe retornar Optional vacio cuando la sigla no existe")
+    void findBySigla_debeRetornarVacio_cuandoNoExiste() {
+        Optional<Carrera> resultado = carreraRepository.findBySigla("XXX-999");
+        assertFalse(resultado.isPresent());
+    }
+
+    /* 4. TEST PARA buscarPorNombreOSigla() */
+    @Test
+    @DisplayName("buscarPorNombreOSigla() debe encontrar carreras por nombre parcial")
+    void buscarPorNombreOSigla_debeEncontrarPorNombre() {
+        List<Carrera> resultado = carreraRepository.buscarPorNombreOSigla("informatica");
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        assertEquals("Ingenieria en Informatica", resultado.get(0).getNombre());
+    }
+
+    @Test
+    @DisplayName("buscarPorNombreOSigla() debe encontrar carreras por sigla parcial")
+    void buscarPorNombreOSigla_debeEncontrarPorSigla() {
+        List<Carrera> resultado = carreraRepository.buscarPorNombreOSigla("MCN");
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        assertEquals("Mecanica Automotriz", resultado.get(0).getNombre());
+    }
+
+    @Test
+    @DisplayName("buscarPorNombreOSigla() debe retornar lista vacia cuando no hay coincidencias")
+    void buscarPorNombreOSigla_debeRetornarVacio_cuandoNoHayCoincidencias() {
+        List<Carrera> resultado = carreraRepository.buscarPorNombreOSigla("XXXXX");
+        assertNotNull(resultado);
+        assertTrue(resultado.isEmpty());
+    }
+
+    /* 5. TEST PARA findBySiglaExcludingCurrent() */
+    @Test
+    @DisplayName("findBySiglaExcludingCurrent() debe retornar carrera con misma sigla de otro ID")
+    void findBySiglaExcludingCurrent_debeRetornarCarrera_cuandoOtraCarreraTieneLaSigla() {
+        Optional<Carrera> resultado = carreraRepository
+            .findBySiglaExcludingCurrent("INF-001", carrera2.getIdCarrera());
+        assertTrue(resultado.isPresent());
+        assertEquals("Ingenieria en Informatica", resultado.get().getNombre());
+    }
+
+    @Test
+    @DisplayName("findBySiglaExcludingCurrent() debe retornar vacio cuando la sigla pertenece al mismo ID")
+    void findBySiglaExcludingCurrent_debeRetornarVacio_cuandoLaSiglaEsDeLaMismaCarrera() {
+        Optional<Carrera> resultado = carreraRepository
+            .findBySiglaExcludingCurrent("INF-001", carrera1.getIdCarrera());
         assertFalse(resultado.isPresent());
     }
 }

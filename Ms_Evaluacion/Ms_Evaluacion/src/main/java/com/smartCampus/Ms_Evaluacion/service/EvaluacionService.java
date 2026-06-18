@@ -22,41 +22,31 @@ import org.springframework.transaction.annotation.Transactional;
 public class EvaluacionService {
 
     private static final Logger logger = LoggerFactory.getLogger(EvaluacionService.class);
-
     private final EvaluacionRepository evaluacionRepository;
     private final TipoEvaluacionRepository tipoEvaluacionRepository;
 
-    
     public EvaluacionService(EvaluacionRepository evaluacionRepository,
-         TipoEvaluacionRepository tipoEvaluacionRepository) {
+                             TipoEvaluacionRepository tipoEvaluacionRepository) {
         this.evaluacionRepository = evaluacionRepository;
         this.tipoEvaluacionRepository = tipoEvaluacionRepository;
     }
 
-    
-
     @Transactional(readOnly = true)
-    public List<EvaluacionResponseDTO> buscarPorTipo(Long Tipoid) {
-        logger.info("Buscando evaluaciones por tipo ID: {}", Tipoid);
-        // Ahora sí usamos el método del repositorio que acabamos de crear
-        return evaluacionRepository.findByTipo(Tipoid).stream()
+    public List<EvaluacionResponseDTO> buscarPorTipo(Long tipoId) {
+        List<Evaluacion> lista = evaluacionRepository.findByTipo(tipoId);
+
+        if (lista.isEmpty()) {
+        throw new RuntimeException("No se encontraron evaluaciones asociadas al tipo con ID: " + tipoId);
+        }
+
+        return evaluacionRepository.findByTipo(tipoId).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public List<EvaluacionResponseDTO> buscarFiltrado(String nombre, Double minPorcentaje) {
-        logger.info("Buscando evaluaciones con nombre: {} y minPorcentaje: {}", nombre, minPorcentaje);
-        return evaluacionRepository.findByNameAndMinPorcentaje(nombre, minPorcentaje).stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    // --- CRUD ESTÁNDAR ---
 
     @Transactional(readOnly = true)
     public List<EvaluacionResponseDTO> listarTodas() {
-        logger.info("Listando todas las evaluaciones...");
         return evaluacionRepository.findAll().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
@@ -64,72 +54,69 @@ public class EvaluacionService {
 
     @Transactional(readOnly = true)
     public EvaluacionResponseDTO buscarPorId(Long id) {
-        logger.info("Buscando evaluación con ID: {}", id);
         return evaluacionRepository.findById(id)
                 .map(this::toResponseDTO)
-                .orElseThrow(() -> new IllegalArgumentException("Evaluación no encontrada con ID: " + id));
+                .orElseThrow(() -> new RuntimeException("No se encontró la evaluación con ID: " + id));
     }
 
     @Transactional
     public EvaluacionResponseDTO crear(EvaluacionRequestDTO dto) {
-        logger.info("Creando nueva evaluación: {}", dto.getNombre());
-        
-        TipoEvaluacion tipo = tipoEvaluacionRepository.findById(dto.getIdTipoEval())
-                .orElseThrow(() -> new IllegalArgumentException("Tipo de evaluación no existe: " + dto.getIdTipoEval()));
-
-        if (evaluacionRepository.existsByNameAndTipoExcludingId(dto.getNombre(), tipo.getIdTipoEval(), 0L)) {
-            logger.warn("Intento de crear evaluación duplicada: {}", dto.getNombre());
-            throw new IllegalStateException("Ya existe una evaluación con ese nombre para este tipo");
+        if (evaluacionRepository.existsByNombreIgnoreCase(dto.getNombre())) {
+            throw new RuntimeException("Ya existe una evaluación con ese nombre");
         }
+
+        TipoEvaluacion tipoEval = tipoEvaluacionRepository.findById(dto.getIdTipoEval())
+                .orElseThrow(() -> new IllegalArgumentException("El tipo de evaluación especificado no existe"));
 
         Evaluacion eval = new Evaluacion();
         eval.setNombre(dto.getNombre());
         eval.setPorcentaje(dto.getPorcentaje());
-        eval.setTipoEvaluacion(tipo);
+        eval.setTipoEvaluacion(tipoEval);
 
         Evaluacion guardada = evaluacionRepository.save(eval);
-        logger.info("Evaluación creada exitosamente con ID: {}", guardada.getId_Evaluacion());
+        logger.info("Evaluación creada correctamente con ID: {}", guardada.getIdEvaluacion());
         return toResponseDTO(guardada);
     }
 
     @Transactional
     public EvaluacionResponseDTO actualizar(Long id, EvaluacionRequestDTO dto) {
-        logger.info("Actualizando evaluación con ID: {}", id);
-        
         Evaluacion eval = evaluacionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Evaluación no encontrada para actualizar"));
 
         TipoEvaluacion nuevoTipo = tipoEvaluacionRepository.findById(dto.getIdTipoEval())
-                .orElseThrow(() -> new IllegalArgumentException("Tipo inválido"));
+                .orElseThrow(() -> new IllegalArgumentException("El tipo de evaluación especificado no existe"));
 
         if (evaluacionRepository.existsByNameAndTipoExcludingId(dto.getNombre(), nuevoTipo.getIdTipoEval(), id)) {
-            throw new IllegalStateException("Conflicto: Ya existe otra evaluación con ese nombre");
+            throw new RuntimeException("Conflicto: Ya existe otra evaluación con ese nombre en este tipo");
         }
 
         eval.setNombre(dto.getNombre());
         eval.setPorcentaje(dto.getPorcentaje());
         eval.setTipoEvaluacion(nuevoTipo);
 
-        return toResponseDTO(evaluacionRepository.save(eval));
+        Evaluacion actualizada = evaluacionRepository.save(eval);
+        logger.info("Evaluación ID: {} actualizada correctamente", id);
+        return toResponseDTO(actualizada);
     }
 
     @Transactional
     public void eliminar(Long id) {
-        logger.info("Eliminando evaluación con ID: {}", id);
         if (!evaluacionRepository.existsById(id)) {
             throw new IllegalArgumentException("No se puede eliminar, ID inexistente: " + id);
         }
         evaluacionRepository.deleteById(id);
-        logger.info("Evaluación eliminada correctamente");
+        logger.info("Evaluación ID: {} eliminada correctamente", id);
     }
 
     private EvaluacionResponseDTO toResponseDTO(Evaluacion e) {
         EvaluacionResponseDTO dto = new EvaluacionResponseDTO();
-        dto.setId_Evaluacion(e.getId_Evaluacion());
+        dto.setIdEvaluacion(e.getIdEvaluacion());
         dto.setNombre(e.getNombre());
         dto.setPorcentaje(e.getPorcentaje());
-        dto.setIdTipoEval(e.getTipoEvaluacion().getIdTipoEval());
-        dto.setNombreTipo(e.getTipoEvaluacion().getNombreTipo());
+        if (e.getTipoEvaluacion() != null) {
+            dto.setIdTipoEval(e.getTipoEvaluacion().getIdTipoEval());
+            dto.setNombreTipo(e.getTipoEvaluacion().getNombreTipo());
+        }
         return dto;
     }
 }

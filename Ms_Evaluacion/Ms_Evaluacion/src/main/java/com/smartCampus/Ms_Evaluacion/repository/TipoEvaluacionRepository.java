@@ -12,11 +12,9 @@ import com.smartCampus.Ms_Evaluacion.model.TipoEvaluacion;
 public interface TipoEvaluacionRepository 
 extends JpaRepository <TipoEvaluacion, Long>{
 
-    // Validar existencia
+    /** Validar existencia por nombre ignorando mayúsculas */
     boolean existsByNombreTipoIgnoreCase(String nombreTipo);
 
-    // Buscar por nombre
+    /** Buscar por nombre ignorando mayúsculas */
     Optional<TipoEvaluacion> findByNombreTipoIgnoreCase(String nombreTipo);
-
-    // Conteo de evaluaciones por tipo
 }

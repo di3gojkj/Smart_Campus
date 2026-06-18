@@ -38,6 +38,12 @@ public class CarreraAsignaturaService {
 
     @Transactional(readOnly = true)
     public List<CarreraAsignaturaResponseDTO> listarTodas(Long idCarrera) {
+
+        List<CarreraAsignatura> lista = repository.findByCarrera_IdCarrera(idCarrera);
+
+        if (lista.isEmpty()) {
+            throw new RuntimeException("No se encontró la carrera con el ID indicado: " + idCarrera);
+        }
         return repository.findByCarrera_IdCarrera(idCarrera).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());

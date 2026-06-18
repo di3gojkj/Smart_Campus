@@ -20,12 +20,10 @@ import com.smartCampus.Ms_Carrera.model.Carrera;
 import com.smartCampus.Ms_Carrera.model.CarreraAsignatura;
 
 @DataJpaTest(properties = {
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.datasource.url=jdbc:h2:mem:testdb",
-    "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-    "spring.cloud.openfeign.enabled=false"
-})    
+    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
+})
 @ActiveProfiles("test")
 @DisplayName("Test de integracion: Relacion carreraAsignatura")
 public class CarreraAsignaturaRepositoryTest {
@@ -82,6 +80,44 @@ public class CarreraAsignaturaRepositoryTest {
         Optional<CarreraAsignatura> resultado = carreraAsignaturaRepository.findById(99999L);
 
         assertFalse(resultado.isPresent());
+    }
+
+    /* 3. TEST PARA findByCarrera_IdCarrera() */
+    @Test
+    @DisplayName("findByCarrera_IdCarrera() debe retornar solo las relaciones de esa carrera")
+    void findByCarrera_IdCarrera_debeRetornarRelacionesDeLaCarrera() {
+        List<CarreraAsignatura> resultado = carreraAsignaturaRepository
+            .findByCarrera_IdCarrera(carrera1.getIdCarrera());
+        assertNotNull(resultado);
+        assertEquals(2, resultado.size());
+    }
+
+    @Test
+    @DisplayName("findByCarrera_IdCarrera() debe retornar lista vacia si la carrera no tiene relaciones")
+    void findByCarrera_IdCarrera_debeRetornarVacio_cuandoNoHayRelaciones() {
+        List<CarreraAsignatura> resultado = carreraAsignaturaRepository
+            .findByCarrera_IdCarrera(99999L);
+        assertNotNull(resultado);
+        assertTrue(resultado.isEmpty());
+    }
+
+    /* 4. TEST PARA existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre() */
+    @Test
+    @DisplayName("existsBy...() debe retornar true cuando la relacion ya existe")
+    void existsByCarreraAndAsignaturaAndSemestre_debeRetornarTrue_cuandoExiste() {
+        boolean existe = carreraAsignaturaRepository
+            .existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre(
+                carrera1.getIdCarrera(), 3L, 1L);
+        assertTrue(existe);
+    }
+
+    @Test
+    @DisplayName("existsBy...() debe retornar false cuando la relacion no existe")
+    void existsByCarreraAndAsignaturaAndSemestre_debeRetornarFalse_cuandoNoExiste() {
+        boolean existe = carreraAsignaturaRepository
+            .existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre(
+                carrera1.getIdCarrera(), 99L, 99L);
+        assertFalse(existe);
     }
 
     

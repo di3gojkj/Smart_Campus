@@ -67,7 +67,7 @@ public class AsignaturaController {
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Asignatura encontrada y retornada exitosamente=",
+            description = "Asignatura encontrada y retornada exitosamente",
             content = @Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
                 schema = @Schema(implementation = AsignaturaResponseDTO.class)

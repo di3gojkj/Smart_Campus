@@ -64,7 +64,9 @@ public class SemestreControllerTest {
     @Test
     @DisplayName("POST /api/semestres debe retornar 201 al registrar")
     void crear_debeRetornar201() throws Exception {
-        SemestreRequestDTO req = new SemestreRequestDTO(); req.setNombre("2027-1");
+        SemestreRequestDTO req = new SemestreRequestDTO(); 
+        req.setNombre("2027-1");
+        req.setIdEstado(1L);
         SemestreResponseDTO res = new SemestreResponseDTO(); res.setIdSemestre(1L); res.setNombre("2027-1");
         when(semestreService.crear(any(SemestreRequestDTO.class))).thenReturn(res);
 
@@ -78,7 +80,9 @@ public class SemestreControllerTest {
     @Test
     @DisplayName("PUT /api/semestres/{id} debe retornar 200 al editar")
     void actualizar_debeRetornar200() throws Exception {
-        SemestreRequestDTO req = new SemestreRequestDTO(); req.setNombre("2026-1 Modificado");
+        SemestreRequestDTO req = new SemestreRequestDTO(); 
+        req.setNombre("2026-1 Modificado");
+        req.setIdEstado(1L);
         SemestreResponseDTO res = new SemestreResponseDTO(); res.setNombre("2026-1 Modificado");
         when(semestreService.actualizar(eq(1L), any(SemestreRequestDTO.class))).thenReturn(res);
 

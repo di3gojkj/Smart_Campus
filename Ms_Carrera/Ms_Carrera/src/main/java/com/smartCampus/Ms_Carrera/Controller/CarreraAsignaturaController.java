@@ -54,6 +54,10 @@ public class CarreraAsignaturaController {
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
                 schema = @Schema(implementation = CarreraAsignaturaResponseDTO.class)
             )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No se encontro la carrera con el id indicado"
         )
     })
     @GetMapping("/carrera/{idCarrera}")
