@@ -1,7 +1,6 @@
 package com.cur_eva.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -56,4 +55,11 @@ public class CursoEvaluacionRequestDTO {
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String fApertura;
+
+    // ADICIÓN INTEGRADA: Campo indispensable para vincular síncronamente con Ms_Evaluacion
+    @Schema(
+        description = "Identificador opcional de la evaluación en el microservicio remoto", 
+        example = "5"
+    )
+    private Long idEvaluacion;
 }

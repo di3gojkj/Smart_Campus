@@ -86,9 +86,9 @@ public class CursoEvaluacionControllerTest {
     @Test
     @DisplayName("POST /api/estados debe retornar 201 con datos validos")
     void crear_debeRetornar201_cuandoDatosValidos() throws Exception {
-        // Arrange: Objetos simulados para la petición (Request) y la salida (Response)
+      
         CursoEvaluacionRequestDTO request = new CursoEvaluacionRequestDTO(
-            "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20"
+            "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20", 5L
         );
         CursoEvaluacionResponseDTO response = new CursoEvaluacionResponseDTO(
             1L, "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20"
