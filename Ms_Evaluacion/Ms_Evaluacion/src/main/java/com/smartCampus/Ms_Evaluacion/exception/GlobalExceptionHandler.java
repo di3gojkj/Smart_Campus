@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
     /*Atrapa la Evaluacion cuando no se encuentra el id */
 
     @ExceptionHandler(EvaluacionNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleAsignaturaNotFound(EvaluacionNotFoundException ex, 
+    public ResponseEntity<ErrorResponseDTO> handleEvaluacionNotFound(EvaluacionNotFoundException ex, 
         HttpServletRequest req){
         logger.warn("Evaluacion no encontrada: {}",ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
 
     /*Atrapa la semestre cuando no se encuentra el id */
     @ExceptionHandler(TipoEvaluacionNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleSemestreNotFound(TipoEvaluacionNotFoundException ex,
+    public ResponseEntity<ErrorResponseDTO> handleTipoEvaluacionNotFound(TipoEvaluacionNotFoundException ex,
          HttpServletRequest req) {
         logger.warn("Tipo Evaluacion no encontrado: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -50,6 +50,13 @@ public class GlobalExceptionHandler {
                 .body(construirError(HttpStatus.BAD_REQUEST,
                      "Error de validacion en los datos enviados", req.getRequestURI(),detalles));
         }
+        
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponseDTO> handleRuntimeException(RuntimeException ex, HttpServletRequest req) {
+        logger.warn("Recurso no encontrado: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(), req.getRequestURI(), null));
+    }
     
     private ErrorResponseDTO construirError(HttpStatus status, String mensaje,
                                              String path, List<String> detalles) {

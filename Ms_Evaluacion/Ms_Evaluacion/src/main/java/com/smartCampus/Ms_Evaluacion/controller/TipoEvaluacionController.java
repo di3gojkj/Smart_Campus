@@ -23,7 +23,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -81,7 +81,9 @@ public class TipoEvaluacionController {
         @ApiResponse(
             responseCode = "404",
             description = "tipoEvaluacion no encontrada en la BD",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE
+            )
         )
     })
     @GetMapping("/{id}")
@@ -114,7 +116,8 @@ public class TipoEvaluacionController {
         )
     })
     @PostMapping
-    public ResponseEntity<TipoEvaluacionResponseDTO> crear(@RequestBody TipoEvaluacionRequestDTO dto) {
+    public ResponseEntity<TipoEvaluacionResponseDTO> crear(
+        @Valid @RequestBody TipoEvaluacionRequestDTO dto) {
         log.info("[TipoEvaluacionController] POST Creando nuevo tipo: {}", dto.getNombreTipo());
         return new ResponseEntity<>(tipoEvaluacionService.crear(dto), HttpStatus.CREATED);
     }
@@ -156,8 +159,7 @@ public class TipoEvaluacionController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Datos de entrada invalidos",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            description = "Datos de entrada invalidos"
         )
     })
     @DeleteMapping("/{id}")

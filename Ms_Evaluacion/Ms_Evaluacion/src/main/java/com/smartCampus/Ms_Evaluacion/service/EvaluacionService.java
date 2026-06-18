@@ -33,17 +33,17 @@ public class EvaluacionService {
 
     @Transactional(readOnly = true)
     public List<EvaluacionResponseDTO> buscarPorTipo(Long tipoId) {
+        List<Evaluacion> lista = evaluacionRepository.findByTipo(tipoId);
+
+        if (lista.isEmpty()) {
+        throw new RuntimeException("No se encontraron evaluaciones asociadas al tipo con ID: " + tipoId);
+        }
+
         return evaluacionRepository.findByTipo(tipoId).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public List<EvaluacionResponseDTO> buscarPorNombreYPorcentaje(String nombre, Double min) {
-        return evaluacionRepository.findByNameAndMinPorcentaje(nombre, min).stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
-    }
 
     @Transactional(readOnly = true)
     public List<EvaluacionResponseDTO> listarTodas() {
@@ -56,13 +56,13 @@ public class EvaluacionService {
     public EvaluacionResponseDTO buscarPorId(Long id) {
         return evaluacionRepository.findById(id)
                 .map(this::toResponseDTO)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró la evaluación con ID: " + id));
+                .orElseThrow(() -> new RuntimeException("No se encontró la evaluación con ID: " + id));
     }
 
     @Transactional
     public EvaluacionResponseDTO crear(EvaluacionRequestDTO dto) {
         if (evaluacionRepository.existsByNombreIgnoreCase(dto.getNombre())) {
-            throw new IllegalStateException("Ya existe una evaluación con ese nombre");
+            throw new RuntimeException("Ya existe una evaluación con ese nombre");
         }
 
         TipoEvaluacion tipoEval = tipoEvaluacionRepository.findById(dto.getIdTipoEval())
@@ -87,7 +87,7 @@ public class EvaluacionService {
                 .orElseThrow(() -> new IllegalArgumentException("El tipo de evaluación especificado no existe"));
 
         if (evaluacionRepository.existsByNameAndTipoExcludingId(dto.getNombre(), nuevoTipo.getIdTipoEval(), id)) {
-            throw new IllegalStateException("Conflicto: Ya existe otra evaluación con ese nombre en este tipo");
+            throw new RuntimeException("Conflicto: Ya existe otra evaluación con ese nombre en este tipo");
         }
 
         eval.setNombre(dto.getNombre());

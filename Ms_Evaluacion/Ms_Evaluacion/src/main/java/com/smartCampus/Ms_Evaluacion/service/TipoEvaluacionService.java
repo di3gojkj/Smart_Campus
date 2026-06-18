@@ -36,16 +36,16 @@ public class TipoEvaluacionService {
     }
 
     @Transactional(readOnly = true)
-    public TipoEvaluacionResponseDTO buscarPorId(Long id) {
-        return repository.findById(id)
-                .map(this::toResponseDTO)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró el tipo de evaluación con ID: " + id));
-    }
+public TipoEvaluacionResponseDTO buscarPorId(Long id) {
+    return repository.findById(id)
+            .map(this::toResponseDTO)
+            .orElseThrow(() -> new RuntimeException("El tipo de evaluación especificado no existe con ID: " + id));
+}
 
     @Transactional
     public TipoEvaluacionResponseDTO crear(TipoEvaluacionRequestDTO dto) {
         if (repository.existsByNombreTipoIgnoreCase(dto.getNombreTipo())) {
-            throw new IllegalStateException("El nombre del tipo de evaluación ya existe");
+            throw new RuntimeException("El nombre del tipo de evaluación ya existe");
         }
 
         TipoEvaluacion tipo = new TipoEvaluacion();
@@ -59,7 +59,7 @@ public class TipoEvaluacionService {
     @Transactional
     public TipoEvaluacionResponseDTO actualizar(Long id, TipoEvaluacionRequestDTO dto) {
         TipoEvaluacion tipo = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró el tipo de evaluación a actualizar"));
+                .orElseThrow(() -> new RuntimeException("No se encontró el tipo de evaluación a actualizar"));
 
         if (!tipo.getNombreTipo().equalsIgnoreCase(dto.getNombreTipo())
              && repository.existsByNombreTipoIgnoreCase(dto.getNombreTipo())) {
@@ -75,7 +75,7 @@ public class TipoEvaluacionService {
     @Transactional
     public void eliminar(Long id) {
         if (!repository.existsById(id)) {
-            throw new IllegalArgumentException("No se puede eliminar, ID inexistente: " + id);
+            throw new RuntimeException("No se puede eliminar, ID inexistente: " + id);
         }
         repository.deleteById(id);
         logger.info("Tipo de evaluación ID: {} eliminado correctamente", id);

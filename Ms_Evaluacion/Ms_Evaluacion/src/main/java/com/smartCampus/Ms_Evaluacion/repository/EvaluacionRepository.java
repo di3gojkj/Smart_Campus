@@ -13,23 +13,19 @@ import com.smartCampus.Ms_Evaluacion.model.Evaluacion;
 public interface EvaluacionRepository 
 extends JpaRepository<Evaluacion,Long>{
 
-    /** Valida si existe una evaluación por nombre (Ignora Mayúsculas/Minúsculas) */
+    /* Valida si existe una evaluación por nombre (Ignora Mayúsculas/Minúsculas) */
     boolean existsByNombreIgnoreCase(String nombre);
 
-    /** Filtro por nombre (parcial) y porcentaje mínimo */
-    @Query("SELECT e FROM Evaluacion e WHERE LOWER(e.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
-           "AND e.porcentaje >= :min")
-    List<Evaluacion> findByNameAndMinPorcentaje(@Param("nombre") String nombre, 
-                                                @Param("min") Double min);
+    /* Filtro por nombre (parcial) y porcentaje mínimo */
 
-    /** Validar duplicados para edición (excluyendo el id actual) */
+    /* Validar duplicados para edición (excluyendo el id actual) */
     @Query("SELECT COUNT(e) > 0 FROM Evaluacion e WHERE LOWER(e.nombre) = LOWER(:nombre) " +
            "AND e.tipoEvaluacion.idTipoEval = :idTipo AND e.idEvaluacion <> :idExcluir")
     boolean existsByNameAndTipoExcludingId(@Param("nombre") String nombre,
                                            @Param("idTipo") Long idTipoEval,
                                            @Param("idExcluir") Long idExcluir);
 
-    /** Busca por el tipo de evaluacion */
+    /* Busca por el tipo de evaluacion */
     @Query("SELECT e FROM Evaluacion e WHERE e.tipoEvaluacion.idTipoEval = :id")
     List<Evaluacion> findByTipo(@Param("id") Long id);
 }

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.smartCampus.Ms_Evaluacion.DTO.EvaluacionRequestDTO;
@@ -21,6 +20,7 @@ import com.smartCampus.Ms_Evaluacion.DTO.EvaluacionResponseDTO;
 import com.smartCampus.Ms_Evaluacion.service.EvaluacionService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -63,6 +63,40 @@ public class EvaluacionController {
     }
 
     @Operation(
+        summary = "Buscar carrera por ID",
+        description = "Busca y retorna la carrera con el ID indicado."+
+        "Puede retornar 404 en caso que no la encuentre en la tabla"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200", 
+            description = "Carrera encontrada mediante su ID",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = EvaluacionResponseDTO.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Carrera no encontrada en la BD",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE
+            )
+        )
+    })
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EvaluacionResponseDTO> buscarPorId(
+        @Parameter(
+            description = "ID de la carrera a buscar",
+            example = "1",
+            required = true
+        )
+        @PathVariable Long id
+    ){
+        log.info("[CarreraController] GET (api/carreras/{}", id);
+        return ResponseEntity.ok(service.buscarPorId(id));
+    }
+
+    @Operation(
         summary = "Buscar evaluaciones por su Tipo de Evaluación",
         description = "Retorna una lista de evaluaciones asociadas al ID del tipo de evaluación ingresado"
     )
@@ -74,6 +108,10 @@ public class EvaluacionController {
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
                 schema = @Schema(implementation = EvaluacionResponseDTO.class)
             )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Datos de entrada inválidos o inconsistentes"
         )
     })
     @GetMapping("/tipo/{idTipo}")
@@ -82,27 +120,6 @@ public class EvaluacionController {
         return ResponseEntity.ok(service.buscarPorTipo(idTipo));
     }
 
-    @Operation(
-        summary = "Buscar evaluaciones con filtros avanzados",
-        description = "Filtra las evaluaciones por coincidencia parcial en el nombre y que tengan un porcentaje de ponderación mínimo"
-    )
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "Resultados de la búsqueda obtenidos correctamente",
-            content = @Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = @Schema(implementation = EvaluacionResponseDTO.class)
-            )
-        )
-    })
-    @GetMapping("/buscar")
-    public ResponseEntity<List<EvaluacionResponseDTO>> buscarPorNomberYPorcentaje(
-            @RequestParam String nombre, 
-            @RequestParam Double minPorcentaje) {
-        log.info("[EvaluacionController] GET - Buscando evaluaciones filtradas por Nombre: '{}' y MinPorcentaje: {}", nombre, minPorcentaje);
-        return ResponseEntity.ok(service.buscarPorNombreYPorcentaje(nombre, minPorcentaje));
-    }
 
     @Operation(
         summary = "Crear una nueva evaluación académica",
@@ -147,11 +164,11 @@ public class EvaluacionController {
         ),
         @ApiResponse(
             responseCode = "404",
-            description = "Evaluación o Tipo de Evaluación no encontrado"
+            description = "Evaluación o Tipo de Evaluacion no encontrado"
         ),
         @ApiResponse(
             responseCode = "409",
-            description = "Conflicto: El nombre ya está en uso por otra evaluación del mismo tipo"
+            description = "Conflicto: El nombre ya esta en uso por otra evaluación del mismo tipo"
         )
     })
     @PutMapping("/{id}")
@@ -161,13 +178,13 @@ public class EvaluacionController {
     }
 
     @Operation(
-        summary = "Eliminar de forma permanente una evaluación",
-        description = "Elimina el registro de la evaluación del sistema usando su ID"
+        summary = "Eliminar de forma permanente una evaluacion",
+        description = "Elimina el registro de la evaluacion del sistema usando su ID"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "204",
-            description = "Evaluación eliminada correctamente"
+            description = "Evaluacion eliminada correctamente"
         ),
         @ApiResponse(
             responseCode = "404",
