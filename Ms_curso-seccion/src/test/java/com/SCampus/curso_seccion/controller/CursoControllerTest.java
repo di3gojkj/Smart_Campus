@@ -1,9 +1,13 @@
 package com.SCampus.curso_seccion.controller;
 
 import java.util.List;
-
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import com.SCampus.curso_seccion.client.CarreraClient;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -21,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.SCampus.curso_seccion.dto.CarreraResponseDTO;
 import com.SCampus.curso_seccion.dto.CursoRequestDTO;
 import com.SCampus.curso_seccion.dto.CursoResponseDTO;
 import com.SCampus.curso_seccion.service.CursoService;
@@ -51,8 +55,8 @@ public class CursoControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(12))
-                .andExpect(jsonPath("$.fechaCreacion").value("14/06/26"));
+                .andExpect(jsonPath("$[0].id").value(12))
+                .andExpect(jsonPath("$[0].fechaCreacion").value("14/06/26"));
 
         verify(cursoService, times(1)).obtenerTodos();
     }
@@ -77,4 +81,28 @@ public class CursoControllerTest {
 
         verify(cursoService, times(1)).guardarCurso(any(CursoRequestDTO.class));
     }
+
+    @Test
+    @DisplayName("GET /api/cursos/{id} debe retornar 200 y el DTO si el curso existe")
+    void obtenerPorId_debeRetornar200_cuandoExiste() throws Exception {
+        CursoResponseDTO response = new CursoResponseDTO(12L, "14/06/26");
+        when(cursoService.obtenerPorId(12L)).thenReturn(Optional.of(response));
+
+        mockMvc.perform(get("/api/cursos/12")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(12))
+            .andExpect(jsonPath("$.fechaCreacion").value("14/06/26"));
+    }
+
+    @Test
+    @DisplayName("GET /api/cursos/{id} debe retornar 404 si el curso no existe")
+    void obtenerPorId_debeRetornar404_cuandoNoExiste() throws Exception {
+        when(cursoService.obtenerPorId(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/cursos/99")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+    }
+
 }

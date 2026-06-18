@@ -1,6 +1,7 @@
 package com.SCampus.curso_seccion.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -46,5 +47,10 @@ public class CursoService {
         log.info("Curso guardado exitosamente en la BD local con ID: {}", guardado.getId());
         return mapToDTO(guardado);
     }
+
+    public Optional<CursoResponseDTO> obtenerPorId(Long id) {
+    return cursoRepository.findById(id)
+            .map(curso -> new CursoResponseDTO(curso.getId(), curso.getFechaCreacion()));
+}
 }
 

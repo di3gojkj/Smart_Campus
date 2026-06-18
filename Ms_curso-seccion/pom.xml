@@ -26,9 +26,13 @@
 		<tag/>
 		<url/>
 	</scm>
+	
+	<!-- CORREGIDO: Bloque de propiedades unificado en un solo elemento sin duplicados -->
 	<properties>
 		<java.version>21</java.version>
+		<spring-cloud.version>2025.1.1</spring-cloud.version>
 	</properties>
+
 	<dependencies>
 		<!-- Spring Boot Web & Data -->
 		<dependency>
@@ -39,7 +43,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
-		<!-- Sincronizado: Cambiado a starter-webmvc bajo el estándar de tu plantilla -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
@@ -57,14 +60,20 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- DOCUMENTACIÓN: Swagger / OpenAPI 3 (Sincronizado a la versión 3.0.3 del ejemplo) -->
+		<!-- DOCUMENTACIÓN: Swagger / OpenAPI 3 -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>3.0.3</version>
 		</dependency>
 
-		<!-- TESTING INTEGRAL INSTITUCIONAL (Añadidas todas las librerías del ejemplo) -->
+		<!-- INTEGRACIÓN: Spring Cloud OpenFeign -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
+
+		<!-- TESTING INTEGRAL -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
@@ -89,6 +98,18 @@
 		</dependency>
 	</dependencies>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -104,7 +125,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- JaCoCo para cobertura de código (Añadido del ejemplo) -->
+			<!-- JaCoCo para cobertura de código -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -165,4 +186,5 @@
 		</plugins>
 	</build>
 </project>
+
 

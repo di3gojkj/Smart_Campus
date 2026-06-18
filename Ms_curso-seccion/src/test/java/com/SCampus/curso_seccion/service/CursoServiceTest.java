@@ -13,13 +13,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.any;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.SCampus.curso_seccion.client.CarreraClient;
+import com.SCampus.curso_seccion.dto.CarreraResponseDTO;
 import com.SCampus.curso_seccion.dto.CursoRequestDTO;
 import com.SCampus.curso_seccion.dto.CursoResponseDTO;
 import com.SCampus.curso_seccion.model.Curso;
@@ -31,6 +34,9 @@ public class CursoServiceTest {
 
     @Mock
     private CursoRepository cursoRepository;
+
+     @Mock
+    private CarreraClient carreraClient;
 
     @InjectMocks
     private CursoService cursoService;
@@ -95,5 +101,49 @@ public class CursoServiceTest {
 
         verify(cursoRepository, times(1)).findByFechaCreacion("14/06/26");
         verify(cursoRepository, never()).save(any(Curso.class));
+    }
+
+    @Test
+    @DisplayName("obtenerPorId() debe retornar un Optional con el DTO si el ID existe en la base de datos")
+    void obtenerPorId_debeRetornarCursoDto_cuandoIdExiste() {
+        // Arrange
+        when(cursoRepository.findById(12L)).thenReturn(Optional.of(cursoEjemplo));
+
+        // Act
+        Optional<CursoResponseDTO> resultado = cursoService.obtenerPorId(12L);
+
+        // Assert
+        assertTrue(resultado.isPresent());
+        assertEquals(12L, resultado.get().getId());
+        assertEquals("14/06/26", resultado.get().getFechaCreacion());
+        verify(cursoRepository, times(1)).findById(12L);
+    }
+
+    @Test
+    @DisplayName("obtenerPorId() debe retornar un Optional vacío si el ID no se encuentra en MySQL")
+    void obtenerPorId_debeRetornarOptionalVacio_cuandoIdNoExiste() {
+        // Arrange
+        when(cursoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Act
+        Optional<CursoResponseDTO> resultado = cursoService.obtenerPorId(99L);
+
+        // Assert
+        assertTrue(resultado.isEmpty());
+        verify(cursoRepository, times(1)).findById(99L);
+    }
+
+    @Test
+    @DisplayName("Debe validar exitosamente la existencia de la carrera usando Feign")
+    void validarCarrera_debeFuncionar_cuandoExiste() {
+        CarreraResponseDTO carreraMock = new CarreraResponseDTO(1L, "Ingenieria en Informatica", "INF", 1L);
+        when(carreraClient.obtenerCarreraPorId(1L)).thenReturn(carreraMock);
+
+        CarreraResponseDTO resultado = carreraClient.obtenerCarreraPorId(1L);
+
+        assertNotNull(resultado);
+        assertEquals(1L, resultado.getIdCarrera());
+        assertEquals("Ingenieria en Informatica", resultado.getNombre());
+        verify(carreraClient, times(1)).obtenerCarreraPorId(1L);
     }
 }

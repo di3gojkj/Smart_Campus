@@ -63,4 +63,12 @@ public class CursoController {
         logger.info("Petición HTTP POST recibida en /api/cursos/guardar");
         return ResponseEntity.status(HttpStatus.CREATED).body(cursoService.guardarCurso(curs));
     }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener un curso por su ID", description = "Retorna el DTO del curso si existe, de lo contrario devuelve 404")
+    public ResponseEntity<CursoResponseDTO> obtenerPorId(@PathVariable("id") Long id) {
+        return cursoService.obtenerPorId(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }
