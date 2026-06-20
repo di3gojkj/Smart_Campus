@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/estados")
+@RequestMapping("/api/cur-eva")
 @Tag(name = "Evaluaciones de Cursos", description = "Endpoints para la gestión de estados y evaluaciones de cursos")
 public class CursoEvaluacionController {
 
