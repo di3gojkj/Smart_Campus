@@ -6,7 +6,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,7 @@ import com.smartCampus.Ms_Carrera.model.Carrera;
 
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Test UNIT de CarreraService")
+@DisplayName("Test de Integracion: CarreraService")
 public class CarreraServiceTest {
 
     @Mock

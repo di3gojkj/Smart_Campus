@@ -25,7 +25,7 @@ import com.smartCampus.Ms_Carrera.model.CarreraAsignatura;
     "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
 })
 @ActiveProfiles("test")
-@DisplayName("Test de integracion: Relacion carreraAsignatura")
+@DisplayName("Test de integracion: carreraAsignaturaRepository")
 public class CarreraAsignaturaRepositoryTest {
 
     @Autowired

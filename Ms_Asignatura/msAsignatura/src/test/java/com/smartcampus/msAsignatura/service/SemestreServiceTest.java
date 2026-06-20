@@ -30,7 +30,7 @@ import com.smartcampus.msAsignatura.model.Semestre;
 import com.smartcampus.msAsignatura.repository.SemestreRepository;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Test Unitario: SemestreService")
+@DisplayName("Test de Integracion: SemestreService")
 public class SemestreServiceTest {
     @Mock
     private SemestreRepository semestreRepository;

@@ -5,7 +5,8 @@ import org.springframework.stereotype.Service;
 
 import com.smartCampus.Ms_Evaluacion.DTO.TipoEvaluacionRequestDTO;
 import com.smartCampus.Ms_Evaluacion.DTO.TipoEvaluacionResponseDTO;
-
+import com.smartCampus.Ms_Evaluacion.exception.TipoEvaluacionConflictException;
+import com.smartCampus.Ms_Evaluacion.exception.TipoEvaluacionNotFoundException;
 import com.smartCampus.Ms_Evaluacion.model.TipoEvaluacion;
 import com.smartCampus.Ms_Evaluacion.repository.TipoEvaluacionRepository;
 
@@ -36,49 +37,49 @@ public class TipoEvaluacionService {
     }
 
     @Transactional(readOnly = true)
-public TipoEvaluacionResponseDTO buscarPorId(Long id) {
-    return repository.findById(id)
-            .map(this::toResponseDTO)
-            .orElseThrow(() -> new RuntimeException("El tipo de evaluación especificado no existe con ID: " + id));
-}
+    public TipoEvaluacionResponseDTO buscarPorId(Long id) {
+        return repository.findById(id)
+                .map(this::toResponseDTO)
+                .orElseThrow(() -> new TipoEvaluacionNotFoundException(id));
+    }
 
     @Transactional
     public TipoEvaluacionResponseDTO crear(TipoEvaluacionRequestDTO dto) {
         if (repository.existsByNombreTipoIgnoreCase(dto.getNombreTipo())) {
-            throw new RuntimeException("El nombre del tipo de evaluación ya existe");
+            throw new TipoEvaluacionConflictException("El nombre del tipo de evaluacion ya existe");
         }
 
         TipoEvaluacion tipo = new TipoEvaluacion();
         tipo.setNombreTipo(dto.getNombreTipo());
 
         TipoEvaluacion guardado = repository.save(tipo);
-        logger.info("Tipo de evaluación creado correctamente con ID: {}", guardado.getIdTipoEval());
+        logger.info("Tipo de evaluacion creado correctamente con ID: {}", guardado.getIdTipoEval());
         return toResponseDTO(guardado);
     }
 
     @Transactional
     public TipoEvaluacionResponseDTO actualizar(Long id, TipoEvaluacionRequestDTO dto) {
         TipoEvaluacion tipo = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No se encontró el tipo de evaluación a actualizar"));
+                .orElseThrow(() -> new TipoEvaluacionNotFoundException(id));
 
         if (!tipo.getNombreTipo().equalsIgnoreCase(dto.getNombreTipo())
              && repository.existsByNombreTipoIgnoreCase(dto.getNombreTipo())) {
-            throw new IllegalStateException("El nombre ya está ocupado por otro tipo de evaluación");
+            throw new TipoEvaluacionConflictException("El nombre ya esta ocupado por otro tipo de evaluacion");
         }
 
         tipo.setNombreTipo(dto.getNombreTipo());
         TipoEvaluacion actualizado = repository.save(tipo);
-        logger.info("Tipo de evaluación ID: {} actualizado correctamente", id);
+        logger.info("Tipo de evaluacion ID: {} actualizado correctamente", id);
         return toResponseDTO(actualizado);
     }
 
     @Transactional
     public void eliminar(Long id) {
         if (!repository.existsById(id)) {
-            throw new RuntimeException("No se puede eliminar, ID inexistente: " + id);
+            throw new TipoEvaluacionNotFoundException(id);
         }
         repository.deleteById(id);
-        logger.info("Tipo de evaluación ID: {} eliminado correctamente", id);
+        logger.info("Tipo de evaluacion ID: {} eliminado correctamente", id);
     }
 
     private TipoEvaluacionResponseDTO toResponseDTO(TipoEvaluacion t) {

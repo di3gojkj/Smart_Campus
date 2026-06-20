@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
         logger.warn("Conflicto en CarreraAsignatura: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI(), null));
-    }
+    }             
 
     @ExceptionHandler(CarreraNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleCarreraNotFound(CarreraNotFoundException ex,

@@ -24,7 +24,7 @@ import com.smartcampus.msAsignatura.model.Semestre;
     "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
 })
 @ActiveProfiles("test")
-@DisplayName("Test de Integración: SemestreRepository")
+@DisplayName("Test de Integracion: SemestreRepository")
 public class SemestreRepositoryTest {
 
     @Autowired

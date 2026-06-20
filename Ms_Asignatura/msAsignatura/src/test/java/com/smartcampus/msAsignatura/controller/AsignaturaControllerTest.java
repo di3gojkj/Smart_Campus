@@ -30,7 +30,7 @@ import com.smartcampus.msAsignatura.service.AsignaturaService;
 
 
 @WebMvcTest(AsignaturaController.class)
-@DisplayName("Test de Integración: AsignaturaController")
+@DisplayName("Tests del Controller con MockMvc")
 public class AsignaturaControllerTest {
 
     @Autowired

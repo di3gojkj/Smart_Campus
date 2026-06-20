@@ -56,6 +56,8 @@ public class Evaluacion {
     @NotNull(message = "El tipo de evaluacion es obligatorio")
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_tipo_evaluacion", nullable = false)
-    @Schema(description = "Tipo de evaluacion asociado")
+    @Schema(
+        description = "Tipo de evaluacion asociado"
+    )
     private TipoEvaluacion tipoEvaluacion;
 }

@@ -28,6 +28,13 @@ public class GlobalExceptionHandler {
         req.getRequestURI(), null));
     }
 
+    @ExceptionHandler(EvaluacionConflictException.class)
+    public ResponseEntity<ErrorResponseDTO> handleEvaluacionConflict(EvaluacionConflictException ex, HttpServletRequest req) {
+        logger.warn("Conflicto en Evaluacion: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI(), null));
+    } 
+
     /*Atrapa la semestre cuando no se encuentra el id */
     @ExceptionHandler(TipoEvaluacionNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleTipoEvaluacionNotFound(TipoEvaluacionNotFoundException ex,
@@ -37,6 +44,13 @@ public class GlobalExceptionHandler {
         .body(construirError(HttpStatus.NOT_FOUND, ex.getMessage(),
         req.getRequestURI(), null));
     }
+
+    @ExceptionHandler(TipoEvaluacionConflictException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTipoEvaluacionConflict(TipoEvaluacionConflictException ex, HttpServletRequest req) {
+        logger.warn("Conflicto en Evaluacion: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI(), null));
+    } 
 
     /*Atrapa errores de validacion (@NotBlank, @NotNull, @Size)*/
     @ExceptionHandler(MethodArgumentNotValidException.class)
