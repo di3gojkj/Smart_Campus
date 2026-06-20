@@ -3,7 +3,6 @@ package com.smartcampus.msAsignatura.config;
 import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import com.smartcampus.msAsignatura.model.Asignatura;
@@ -16,20 +15,18 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@Profile("!test")
 @RequiredArgsConstructor
-public class DataSeeder implements CommandLineRunner {
+public class DataInitializer implements CommandLineRunner{
 
     private final AsignaturaRepository asignaturaRepository;
     private final SemestreRepository semestreRepository;
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("[DataSeeder]: Insertando Semestres...");
+        log.info("[DataInitializer]: Insertando Semestres...");
 
-        
+        // Verificamos si la tabla Semestre está vacía
         if (semestreRepository.count() == 0) {
-            
             Semestre s1 = new Semestre();
             s1.setNombre("2026-1");
             s1.setIdEstado(1L); 
@@ -39,14 +36,14 @@ public class DataSeeder implements CommandLineRunner {
             s2.setIdEstado(1L);
 
             semestreRepository.saveAll(List.of(s1, s2));
-            log.info("[DataSeeder]: Datos iniciales de semestre cargados con exito");
+            log.info("[DataInitializer]: Datos iniciales de semestre cargados con exito");
         } else {
-            log.info("[DataSeeder]: La tabla ya contiende datos, omitiendo carga");
+            log.info("[DataInitializer]: La tabla Semestre ya contiene datos, omitiendo carga");
         }
 
-        
+        // Verificamos si la tabla Asignatura está vacía
         if (asignaturaRepository.count() == 0) {
-            log.info("[DataSeeder]: Insertando Asignaturas...");
+            log.info("[DataInitializer]: Insertando Asignaturas...");
 
             Asignatura a1 = new Asignatura();
             a1.setNombre("Base de Datos I");
@@ -69,19 +66,12 @@ public class DataSeeder implements CommandLineRunner {
             a4.setIdEstado(1L);
 
             asignaturaRepository.saveAll(List.of(a1, a2, a3, a4));
-            log.info("[DataSeeder]: Datos iniciales de asignatura cargados con exito");
+            log.info("[DataInitializer]: Datos iniciales de asignatura cargados con exito");
         } else {
-            log.info("[DataSeeder]: La tabla ya contiende datos, omitiendo carga");
+            log.info("[DataInitializer]: La tabla Asignatura ya contiene datos, omitiendo carga");
         }
 
-        log.info("[DataSeeder]: Proceso de inicializacion de datos finalizado correctamente.");
+        log.info("[DataInitializer]: Proceso de inicializacion de datos finalizado correctamente.");
     }
-} 
 
-
-
-
-
-    
-
-
+}
