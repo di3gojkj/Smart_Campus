@@ -1,0 +1,83 @@
+server:
+  port: 8021
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+
+            - id: ruta-Ms_Asignatura
+              uri: lb://Ms_Asignatura
+              predicates:
+                - Path=/api/asignaturas,/api/asignaturas/**
+                - Path=/api/semestres,/api/semestres/**
+
+            - id: ruta-Ms_Carrera
+              uri: lb://Ms_Carrera
+              predicates:
+                - Path=/api/carrera-asignaturas,/api/carrera-asignaturas/**
+                - Path=/api/carreras,/api/carreras/**
+
+            - id: ruta-MS_confi
+              uri: lb://MS_confi
+              predicates:
+                - Path=/auth,/auth/**
+              
+            - id: ruta-MS_cur_eva
+              uri: lb://MS_cur_eva
+              predicates:
+                - Path=/api/cur-eva,/api/cur-eva/**
+            
+            - id: ruta-Ms_curso-seccion
+              uri: lb://Ms_curso-seccion
+              predicates:
+                - Path=/api/cursos,/api/cursos/**
+                - Path=/api/seccion,/api/seccion/**
+
+            - id: ruta-Ms_Evaluacion
+              uri: lb://Ms_Evaluacion
+              predicates:
+                - Path=/api/evaluacion,/api/evaluacion/**
+                - Path=/api/tipo-evaluacion,/api/tipo-evaluacion/**
+
+            - id: ruta-Ms_Gestion_Estado
+              uri: lb://Ms_Gestion_Estado
+              predicates:
+                - Path=/api/estados,/api/estados/**
+            
+            - id: ruta-Ms_Gestión_Lista
+              uri: lb://Ms_Gestión_Lista
+              predicates:
+                - Path=/api/calificaciones,/api/calificaciones/**
+                - Path=/api/listas,/api/listas/**
+
+            - id: ruta-MS_Gestión_Usuario
+              uri: lb://MS_Gestión_Usuario
+              predicates:
+                - Path=/api/usuarios,/api/usuarios/**
+                - Path=/api/usuarios,/api/usuarios/**
+
+            - id: ruta-Ms_tipo-asistencia
+              uri: lb://Ms_tipo-asistencia
+              predicates:
+                - Path=/api/asistencia,/api/asistencia/**
+                - Path=/api/tipo,/api/tipo/**
+eureka:
+  client: 
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    hostname: api-gateway
+    instance-id: api-gateway:${server.port}
+
+logging:
+  level:
+    '[org.springframework.cloud.gateway]': DEBUG
+            
