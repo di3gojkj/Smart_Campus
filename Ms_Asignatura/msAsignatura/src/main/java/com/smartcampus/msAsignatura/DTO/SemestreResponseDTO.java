@@ -34,7 +34,7 @@ public class SemestreResponseDTO {
 
     @Schema(
         description = "Nombre descriptivo del estado obtenido del MS Estados", 
-        example = "VIGENTE")
+        example = "ACTIVO")
     private String nombreEstado;
 
     @JsonProperty("ACTIVO") 
