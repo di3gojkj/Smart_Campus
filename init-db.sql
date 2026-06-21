@@ -23,11 +23,6 @@ CREATE DATABASE IF NOT EXISTS db_evaluacion
  CHARACTER SET utf8mb4
  COLLATE utf8mb4_unicode_ci;
 
- -- Crear la BD para ms-productos
-CREATE DATABASE IF NOT EXISTS db_estado
- CHARACTER SET utf8mb4
- COLLATE utf8mb4_unicode_ci;
-
 -- Crear la BD para ms-clientes
 CREATE DATABASE IF NOT EXISTS db_academico
  CHARACTER SET utf8mb4
@@ -50,7 +45,6 @@ GRANT ALL PRIVILEGES ON db_carrera.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_curso_evaluacion.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_curso_seccion.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_evaluacion.* TO 'root'@'%';
-GRANT ALL PRIVILEGES ON db_estado.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_academico.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_usuario.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_tipo-asistencia.* TO 'root'@'%';

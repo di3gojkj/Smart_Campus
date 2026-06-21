@@ -49,14 +49,14 @@ spring:
               predicates:
                 - Path=/api/estados,/api/estados/**
             
-            - id: ruta-Ms_Gestión_Lista
-              uri: lb://Ms_Gestión_Lista
+            - id: ruta-Ms_Gestion_Lista
+              uri: lb://Ms_Gestion_Lista
               predicates:
                 - Path=/api/calificaciones,/api/calificaciones/**
                 - Path=/api/listas,/api/listas/**
 
-            - id: ruta-MS_Gestión_Usuario
-              uri: lb://MS_Gestión_Usuario
+            - id: ruta-MS_Gestion_Usuario
+              uri: lb://MS_Gestion_Usuario
               predicates:
                 - Path=/api/usuarios,/api/usuarios/**
                 - Path=/api/usuarios,/api/usuarios/**
