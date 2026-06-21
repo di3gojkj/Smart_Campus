@@ -2,6 +2,7 @@ package com.smartCampus.Ms_Carrera.Config;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.smartCampus.Ms_Carrera.Repository.CarreraAsignaturaRepository;
 import com.smartCampus.Ms_Carrera.Repository.CarreraRepository;
@@ -14,17 +15,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-
 public class DataInitializer implements CommandLineRunner {
 
     private final CarreraRepository carreraRepository;
     private final CarreraAsignaturaRepository carreraAsignaturaRepository;
     
     @Override
-    public void run(String... args) {
-        // Controlamos que la tabla principal esté vacía para que Docker no duplique registros
+    @Transactional
+    public void run(String... args) throws Exception {
+        log.info("[DataInitializer]: Verificando estado de la BD...");
         if (carreraRepository.count() == 0) {
-            log.info("[DataInitializer]: Insertando Carrera y Relaciones..");
+            log.info("[DataInitializer]: Carrera y Relaciones no encontradas. Insertando datos iniciales..");
 
             
             Carrera carrera1 = carreraRepository.save(new Carrera(null, "Ingenieria en Informatica", "INF-001", 1L));
@@ -37,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
 
             log.info("[DataInitializer]: Datos iniciales cargados correctamente");
         } else {
-            log.info("[DataInitializer]: La tabla ya contiene datos, omitiendo carga inicial...");
+            log.info("[DataInitializer]: La tabla Carrera y Carrera-Asig ya contiene datos, omitiendo carga...");
         }
     }
 

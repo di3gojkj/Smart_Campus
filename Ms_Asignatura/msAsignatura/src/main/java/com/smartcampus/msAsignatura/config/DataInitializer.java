@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.smartcampus.msAsignatura.model.Asignatura;
 import com.smartcampus.msAsignatura.model.Semestre;
@@ -22,11 +23,14 @@ public class DataInitializer implements CommandLineRunner{
     private final SemestreRepository semestreRepository;
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
-        log.info("[DataInitializer]: Insertando Semestres...");
+        log.info("[DataInitializer]: Verificando estado de la BD...");
+        
 
-        // Verificamos si la tabla Semestre está vacía
+        
         if (semestreRepository.count() == 0) {
+            log.info("[DataInitializer]: Semestres no encontrados. Insertando datos iniciales...");
             Semestre s1 = new Semestre();
             s1.setNombre("2026-1");
             s1.setIdEstado(1L); 
@@ -38,12 +42,12 @@ public class DataInitializer implements CommandLineRunner{
             semestreRepository.saveAll(List.of(s1, s2));
             log.info("[DataInitializer]: Datos iniciales de semestre cargados con exito");
         } else {
-            log.info("[DataInitializer]: La tabla Semestre ya contiene datos, omitiendo carga");
+            log.info("[DataInitializer]: La tabla Semestre ya contiene datos. Omitiendo carga...");
         }
 
-        // Verificamos si la tabla Asignatura está vacía
+        
         if (asignaturaRepository.count() == 0) {
-            log.info("[DataInitializer]: Insertando Asignaturas...");
+            log.info("[DataInitializer]: Asignaturas no encontradas. Insertando datos iniciales...");
 
             Asignatura a1 = new Asignatura();
             a1.setNombre("Base de Datos I");
@@ -68,10 +72,9 @@ public class DataInitializer implements CommandLineRunner{
             asignaturaRepository.saveAll(List.of(a1, a2, a3, a4));
             log.info("[DataInitializer]: Datos iniciales de asignatura cargados con exito");
         } else {
-            log.info("[DataInitializer]: La tabla Asignatura ya contiene datos, omitiendo carga");
+            log.info("[DataInitializer]: La tabla Asignatura ya contiene datos. Omitiendo carga...");
         }
 
-        log.info("[DataInitializer]: Proceso de inicializacion de datos finalizado correctamente.");
     }
 
 }
