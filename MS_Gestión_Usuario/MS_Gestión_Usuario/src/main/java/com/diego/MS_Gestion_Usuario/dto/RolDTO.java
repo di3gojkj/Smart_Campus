@@ -14,6 +14,6 @@ public class RolDTO {
     @Schema(description = "Identificador del rol", example = "1")
     private Long idRol;
 
-    @Schema(description = "Nombre del privilegio", example = "ESTUDIANTE")
+    @Schema(description = "Nombre del privilegio", example = "ADMINISTRADOR")
     private String nombre;
 }
