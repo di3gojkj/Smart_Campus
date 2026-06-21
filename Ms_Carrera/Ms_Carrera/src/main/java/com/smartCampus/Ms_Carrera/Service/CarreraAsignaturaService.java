@@ -115,15 +115,23 @@ public class CarreraAsignaturaService {
         dto.setIdAsignatura(ca.getIdAsignatura());
         dto.setIdSemestre(ca.getIdSemestre());
 
-        // Enriquecimiento (Resiliencia si fallan otros MS)
         try {
             var asignatura = asignaturaClient.obtenerAsignaturaPorId(ca.getIdAsignatura());
-            dto.setNombreAsignatura(asignatura.getNombre());
+            if (asignatura != null) {
+                dto.setNombreAsignatura(asignatura.getNombre());
+            }
+
+            var semestre = asignaturaClient.obtenerSemestrePorId(ca.getIdSemestre());
+            if (semestre != null) {
+                dto.setNombreSemestre(semestre.getNombre());
+            }
+
         } catch (Exception e) {
-            logger.error("Error al consultar MS Asignatura (ID: {}): {}", ca.getIdAsignatura(), e.getMessage());
+            logger.error("Error al consultar MS Asignatura (ID Asignatura: {} | ID semestre {}): {}",
+             ca.getIdAsignatura(), e.getMessage());
             dto.setNombreAsignatura("Nombre no disponible");
+            dto.setNombreSemestre("nombre no disponible");
         }
-        
         return dto;
     }
 

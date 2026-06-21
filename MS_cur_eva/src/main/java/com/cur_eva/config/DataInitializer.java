@@ -17,7 +17,7 @@ public class DataInitializer implements CommandLineRunner { // Implementa el run
 
     @Override
     public void run(String... args) throws Exception {
-        // Este bloque se ejecuta automáticamente al levantar el microservicio
+        
         log.info("Verificando estado inicial de la base de datos de evaluaciones (cur_eva)...");
         
         long registros = cursoEvaluacionRepository.count();

@@ -17,7 +17,7 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /*Atrapa la Evaluacion cuando no se encuentra el id */
+    
 
     @ExceptionHandler(EvaluacionNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleEvaluacionNotFound(EvaluacionNotFoundException ex, 
@@ -30,12 +30,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EvaluacionConflictException.class)
     public ResponseEntity<ErrorResponseDTO> handleEvaluacionConflict(EvaluacionConflictException ex, HttpServletRequest req) {
-        logger.warn("Conflicto en Evaluacion: {}", ex.getMessage());
+        logger.warn("Conflicto en Evaluacion: {} ", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI(), null));
     } 
 
-    /*Atrapa la semestre cuando no se encuentra el id */
+    
     @ExceptionHandler(TipoEvaluacionNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleTipoEvaluacionNotFound(TipoEvaluacionNotFoundException ex,
          HttpServletRequest req) {
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TipoEvaluacionConflictException.class)
     public ResponseEntity<ErrorResponseDTO> handleTipoEvaluacionConflict(TipoEvaluacionConflictException ex, HttpServletRequest req) {
-        logger.warn("Conflicto en Evaluacion: {}", ex.getMessage());
+        logger.warn("Conflicto en Evaluacion: {} ", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(construirError(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI(), null));
     } 

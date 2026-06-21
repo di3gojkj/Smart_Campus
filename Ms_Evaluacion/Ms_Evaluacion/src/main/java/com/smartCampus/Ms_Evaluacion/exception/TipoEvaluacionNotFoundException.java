@@ -7,7 +7,7 @@ public class TipoEvaluacionNotFoundException extends RuntimeException {
     private final long idTipoEval;
 
     public TipoEvaluacionNotFoundException(Long id){
-        super("tipo Evaluacion no encontrada con ID" + id);
+        super("tipo Evaluacion no encontrada con ID " + id);
         this.idTipoEval = id;
     }
 

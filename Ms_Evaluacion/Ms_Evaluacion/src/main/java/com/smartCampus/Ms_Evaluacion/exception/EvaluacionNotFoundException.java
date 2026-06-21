@@ -7,7 +7,7 @@ public class EvaluacionNotFoundException extends RuntimeException {
     private final long id_Evaluacion;
 
     public EvaluacionNotFoundException(Long id){
-        super("Evaluacion no encontrada con ID" + id);
+        super("Evaluacion no encontrada con ID " + id);
         this.id_Evaluacion = id;
     }
 

@@ -21,7 +21,7 @@ public class OpenApiConfig {
                                 .name("DSY1103-005D")
                                 .email("ejemplo@gmail.com")))
                 .addServersItem(new Server()
-                        .url("http://localhost:8081")
+                        .url("http://localhost:8099")
                         .description("Servidor de desarrollo Local"));
     }
 
