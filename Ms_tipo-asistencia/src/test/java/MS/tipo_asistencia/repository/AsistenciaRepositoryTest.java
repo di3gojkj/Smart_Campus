@@ -12,42 +12,73 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.ActiveProfiles;
 
 import MS.tipo_asistencia.model.Asistencia;
-import MS.tipo_asistencia.model.Tipo; // CORREGIDO: Importa 'Tipo'
+import MS.tipo_asistencia.model.Tipo;
+import jakarta.persistence.EntityManager;
 
-@DataJpaTest(properties = {
-    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
-    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
-})
+@SpringBootTest
+@Transactional
 @ActiveProfiles("test")
-@DisplayName("Test del repositorio de registros de asistencia en memoria H2")
+@DisplayName("Pruebas Unitarias desde cero para AsistenciaRepository")
 public class AsistenciaRepositoryTest {
 
     @Autowired
     private AsistenciaRepository asistenciaRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private EntityManager entityManager;
 
-    private Asistencia asistenciaDia1;
-    private Tipo tipoPresente; // CORREGIDO: Tipo
+    private Tipo tipoPresente;
+    private Asistencia asistenciaEjemplo;
 
     @BeforeEach
     void setUp() {
-        tipoPresente = entityManager.persistAndFlush(new Tipo(null, "PRESENTE"));
-        asistenciaDia1 = entityManager.persistAndFlush(new Asistencia(null, "2026-06-14", tipoPresente));
+        // 1. Persistimos la entidad paramétrica local obligatoria para el mapa de base de datos
+        Tipo tipo = new Tipo();
+        tipo.setNombre("PRESENTE");
+        entityManager.persist(tipo);
+        tipoPresente = tipo;
+
+        // 2. Registramos la asistencia vinculando el catálogo guardado y un ID de lista simulado
+        asistenciaEjemplo = new Asistencia();
+        asistenciaEjemplo.setFecha("2026-06-21");
+        asistenciaEjemplo.setIdLista(45L); // ID de inscripción simulada de gestion_lista
+        asistenciaEjemplo.setTipo(tipoPresente);
+
+        entityManager.persist(asistenciaEjemplo);
+        entityManager.flush();
     }
 
     @Test
-    @DisplayName("findAll() debe retornar los pases de lista registrados")
-    void findAll_debeRetornarTodasLasAsistencias() {
-        List<Asistencia> lista = asistenciaRepository.findAll();
-        assertNotNull(lista);
-        assertEquals(1, lista.size());
+    @DisplayName("findAll() - Debe retornar el listado completo de asistencias persistidas localmente")
+    void findAll_DebeRetornarTodasLasAsistencias() {
+        List<Asistencia> resultado = asistenciaRepository.findAll();
+
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        assertEquals("2026-06-21", resultado.get(0).getFecha());
+        assertEquals(45L, resultado.get(0).getIdLista());
+        assertEquals("PRESENTE", resultado.get(0).getTipo().getNombre());
+    }
+
+    @Test
+    @DisplayName("findById() - Debe recuperar correctamente la asistencia por su clave primaria")
+    void findById_DebeRetornarAsistencia_CuandoIdExiste() {
+        Optional<Asistencia> resultado = asistenciaRepository.findById(asistenciaEjemplo.getIdAsistencia());
+
+        assertTrue(resultado.isPresent());
+        assertEquals("2026-06-21", resultado.get().getFecha());
+        assertEquals(tipoPresente.getIdTipo(), resultado.get().getTipo().getIdTipo());
+    }
+
+    @Test
+    @DisplayName("findById() - Debe retornar un Optional vacío si el identificador no existe en MySQL")
+    void findById_DebeRetornarVacio_CuandoIdNoExiste() {
+        Optional<Asistencia> resultado = asistenciaRepository.findById(999L);
+        assertFalse(resultado.isPresent());
     }
 }

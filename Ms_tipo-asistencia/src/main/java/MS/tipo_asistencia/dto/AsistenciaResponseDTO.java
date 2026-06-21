@@ -1,36 +1,28 @@
 package MS.tipo_asistencia.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import MS.tipo_asistencia.model.Tipo;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Schema(
-    name = "AsistenciaResponseDTO", 
-    description = "Modelo de datos enviado por el servidor con la información detallada de la asistencia"
-)
+@Schema(description = "Modelo de datos de salida de asistencia enriquecido con metadatos del estudiante e inscripción")
 public class AsistenciaResponseDTO {
 
-    @Schema(
-        description = "Identificador único del registro de asistencia en la base de datos", 
-        example = "15"
-    )
+    @Schema(description = "Identificador único de la asistencia local", example = "101")
     private Long idAsistencia;
 
-    @Schema(
-        description = "Fecha en la que se tomó la asistencia", 
-        example = "2026-06-14"
-    )
+    @Schema(description = "Fecha de registro de la asistencia", example = "2026-06-21")
     private String fecha;
 
-    @Schema(
-        description = "Detalles extendidos del tipo de asistencia asociado (catálogo)"
-    )
-    private TipoResponseDTO tipo;
+    @Schema(description = "ID de la lista/inscripción asociada", example = "1")
+    private Long idLista;
+
+    @Schema(description = "Clasificación paramétrica de la asistencia (PRESENTE/AUSENTE)")
+    private Tipo tipo;
+
+    @Schema(description = "Metadatos detallados de la inscripción obtenidos sincrónicamente desde gestion_lista")
+    private ListaResponseDTO datosInscripcion;
 }
+
 
 

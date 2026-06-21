@@ -1,124 +1,166 @@
 package MS.tipo_asistencia.controller;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest; // CORREGIDO: Ruta adaptada a tu pom.xml institucional
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import MS.tipo_asistencia.dto.AsistenciaRequestDTO;
 import MS.tipo_asistencia.dto.AsistenciaResponseDTO;
-import MS.tipo_asistencia.dto.TipoResponseDTO;
+import MS.tipo_asistencia.dto.ListaResponseDTO;
+import MS.tipo_asistencia.model.Tipo;
 import MS.tipo_asistencia.service.AsistenciaService;
 
-@WebMvcTest(AsistenciaController.class)
-@DisplayName("Tests del AsistenciaController con MockMvc")
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Pruebas Unitarias desde cero para AsistenciaController")
 public class AsistenciaControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Mock
     private AsistenciaService asistenciaService;
 
+    @InjectMocks
+    private AsistenciaController asistenciaController;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private AsistenciaResponseDTO responseDTOMock;
+    private AsistenciaRequestDTO requestDTOMock;
+
+    @BeforeEach
+    void setUp() {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(asistenciaController).build();
+
+        // 1. Instanciamos el catálogo paramétrico interno
+        Tipo tipo = new Tipo(1L, "PRESENTE");
+
+        // 2. Instanciamos el objeto de metadata remota de gestion_lista
+        ListaResponseDTO datosInscripcion = new ListaResponseDTO();
+        datosInscripcion.setIdLista(45L);
+        datosInscripcion.setIdUser(10L);
+        datosInscripcion.setIdCurso(5L);
+
+        // 3. Inicializamos el DTO consolidado de respuesta
+        responseDTOMock = new AsistenciaResponseDTO();
+        responseDTOMock.setIdAsistencia(101L);
+        responseDTOMock.setFecha("2026-06-21");
+        responseDTOMock.setIdLista(45L);
+        responseDTOMock.setTipo(tipo);
+        responseDTOMock.setDatosInscripcion(datosInscripcion);
+
+        // 4. Inicializamos el DTO de payload de entrada para el POST
+        requestDTOMock = new AsistenciaRequestDTO();
+        requestDTOMock.setFecha("2026-06-21");
+        requestDTOMock.setIdLista(45L);
+        requestDTOMock.setIdTipo(1L);
+    }
 
     @Test
-    @DisplayName("GET /api/asistencia debe retornar un JSON con la lista de asistencias y el codigo 200")
-    void obtenerTodas_debeRetornar200ConListaDeAsistencias() throws Exception {
-        TipoResponseDTO tipoDto = new TipoResponseDTO(1L, "PRESENTE");
-        AsistenciaResponseDTO responseDto = new AsistenciaResponseDTO(15L, "2026-06-14", tipoDto);
-        
-        when(asistenciaService.obtenerTodas()).thenReturn(List.of(responseDto));
+    @DisplayName("GET /api/asistencias - Debe retornar status 200 y el listado enriquecido distribuido")
+    void obtenerTodas_DebeRetornarStatus200YListaConsolidada() throws Exception {
+        // Arrange
+        when(asistenciaService.obtenerTodas()).thenReturn(List.of(responseDTOMock));
 
-        // CORREGIDO: Se agregó $[0] a las aserciones porque el endpoint devuelve una lista (Array JSON)
-        mockMvc.perform(get("/api/asistencia")
+        // Act & Assert
+        mockMvc.perform(get("/api/asistencias")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].idAsistencia").value(15))
-                .andExpect(jsonPath("$[0].fecha").value("2026-06-14"))
-                .andExpect(jsonPath("$[0].tipo.nombre").value("PRESENTE"));
+                .andExpect(jsonPath("$.idAsistencia").value(101))
+                .andExpect(jsonPath("$.fecha").value("2026-06-21"))
+                .andExpect(jsonPath("$.tipo.nombre").value("PRESENTE"))
+                .andExpect(jsonPath("$.datosInscripcion.idUser").value(10))
+                .andExpect(jsonPath("$.datosInscripcion.idCurso").value(5));
+
+        verify(asistenciaService, times(1)).obtenerTodas();
     }
 
     @Test
-    @DisplayName("GET /api/asistencia/{id} debe retornar la asistencia correspondiente y el codigo 200")
-    void obtenerPorId_debeRetornar200ConAsistencia() throws Exception {
-        TipoResponseDTO tipoDto = new TipoResponseDTO(1L, "PRESENTE");
-        AsistenciaResponseDTO responseDto = new AsistenciaResponseDTO(15L, "2026-06-14", tipoDto);
-        
-        when(asistenciaService.obtenerPorId(15L)).thenReturn(responseDto);
+    @DisplayName("GET /api/asistencias/{id} - Debe retornar status 200 si la asistencia existe localmente")
+    void obtenerPorId_DebeRetornarStatus200_CuandoIdExiste() throws Exception {
+        // Arrange
+        when(asistenciaService.obtenerPorId(101L)).thenReturn(Optional.of(responseDTOMock));
 
-        // Aquí está correcto sin $[0] porque el endpoint retorna un único objeto directo
-        mockMvc.perform(get("/api/asistencia/15")
+        // Act & Assert
+        mockMvc.perform(get("/api/asistencias/101")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.idAsistencia").value(15))
-                .andExpect(jsonPath("$.fecha").value("2026-06-14"));
+                .andExpect(jsonPath("$.idAsistencia").value(101))
+                .andExpect(jsonPath("$.tipo.nombre").value("PRESENTE"));
+
+        verify(asistenciaService, times(1)).obtenerPorId(101L);
     }
 
     @Test
-    @DisplayName("POST /api/asistencia debe retornar 201 con datos validos")
-    void crear_debeRetornar201_cuandoDatosValidos() throws Exception {
-        AsistenciaRequestDTO request = new AsistenciaRequestDTO("2026-06-14", 1L);
-        TipoResponseDTO tipoDto = new TipoResponseDTO(1L, "PRESENTE");
-        AsistenciaResponseDTO response = new AsistenciaResponseDTO(15L, "2026-06-14", tipoDto);
-        
-        when(asistenciaService.crear(any(AsistenciaRequestDTO.class))).thenReturn(response);
+    @DisplayName("GET /api/asistencias/{id} - Debe retornar status 404 si el registro no se encuentra en MySQL")
+    void obtenerPorId_DebeRetornarStatus404_CuandoIdNoExiste() throws Exception {
+        // Arrange
+        when(asistenciaService.obtenerPorId(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/api/asistencia")
+        // Act & Assert
+        mockMvc.perform(get("/api/asistencias/999")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(asistenciaService, times(1)).obtenerPorId(999L);
+    }
+
+    @Test
+    @DisplayName("POST /api/asistencias - Debe retornar status 201 al procesar de forma correcta un cuerpo válido")
+    void crear_DebeRetornarStatus201YAsistenciaCreada() throws Exception {
+        // Arrange
+        when(asistenciaService.guardar(any(AsistenciaRequestDTO.class))).thenReturn(responseDTOMock);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/asistencias")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(requestDTOMock)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.idAsistencia").value(15))
-                .andExpect(jsonPath("$.fecha").value("2026-06-14"));
+                .andExpect(jsonPath("$.idAsistencia").value(101))
+                .andExpect(jsonPath("$.datosInscripcion.idLista").value(45));
+
+        verify(asistenciaService, times(1)).guardar(any(AsistenciaRequestDTO.class));
     }
 
     @Test
-    @DisplayName("PUT /api/asistencia/{id} debe retornar 200 al actualizar con datos validos")
-    void actualizar_debeRetornar200_cuandoDatosValidos() throws Exception {
-        AsistenciaRequestDTO request = new AsistenciaRequestDTO("2026-06-15", 2L);
-        TipoResponseDTO tipoDto = new TipoResponseDTO(2L, "AUSENTE");
-        AsistenciaResponseDTO response = new AsistenciaResponseDTO(15L, "2026-06-15", tipoDto);
-        
-        when(asistenciaService.actualizar(eq(15L), any(AsistenciaRequestDTO.class))).thenReturn(response);
+    @DisplayName("DELETE /api/asistencias/{id} - Debe retornar status 204 tras un borrado exitoso")
+    void eliminar_DebeRetornarStatus204_CuandoIdExiste() throws Exception {
+        // Arrange
+        when(asistenciaService.obtenerPorId(101L)).thenReturn(Optional.of(responseDTOMock));
 
-        mockMvc.perform(put("/api/asistencia/15")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.fecha").value("2026-06-15"))
-                .andExpect(jsonPath("$.tipo.nombre").value("AUSENTE"));
-    }
-
-    @Test
-    @DisplayName("DELETE /api/asistencia/{id} debe retornar 24 al eliminar un registro")
-    void eliminar_debeRetornar204_cuandoSeElimina() throws Exception {
-        mockMvc.perform(delete("/api/asistencia/15")
+        // Act & Assert
+        mockMvc.perform(delete("/api/asistencias/101")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
+
+        verify(asistenciaService, times(1)).obtenerPorId(101L);
+        verify(asistenciaService, times(1)).eliminar(101L);
     }
 }
