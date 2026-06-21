@@ -14,6 +14,7 @@ import com.diego.MS_Gestion_Usuario.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
 import java.util.HashSet;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -57,7 +58,7 @@ public class DataInitializer implements CommandLineRunner {
                         "admin@duocuc.cl", 
                         passwordEncoder.encode("admin123"), 
                         1L, 
-                        new HashSet<>()
+                        new HashSet<>(List.of(rolRepository.findById(1L).orElseThrow()))
                 );
 
                 Usuario estudiante = new Usuario(
@@ -68,7 +69,7 @@ public class DataInitializer implements CommandLineRunner {
                         "juan.perez@duocuc.cl", 
                         passwordEncoder.encode("estudiante123"), 
                         1L, 
-                        new HashSet<>()
+                        new HashSet<>(List.of(rolRepository.findById(3L).orElseThrow()))
                 );
 
                 usuarioRepository.save(admin);
