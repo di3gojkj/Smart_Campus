@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface SeccionRepository extends JpaRepository<Seccion, Long> {
-    List<Seccion> findByIdCurso(Long idCurso);
+    List<Seccion> findByCurso_Id(Long idCurso);
     Optional<Seccion> findByNombreIgnoreCase(String nombre);
 }

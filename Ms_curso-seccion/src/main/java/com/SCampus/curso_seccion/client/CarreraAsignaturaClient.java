@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.SCampus.curso_seccion.dto.CarreraAsignaturaResponseDTO;
 
-@FeignClient(name = "ms-carrera", url = "http://localhost:8081/api/carrera-asignaturas")
+@FeignClient(name = "ms-carrera", url = "${ms.carrera.url}")
 public interface CarreraAsignaturaClient {
 
     @GetMapping("/carrera/{idCarrera}")

@@ -44,7 +44,7 @@ public class SeccionRepositoryTest {
         entityManager.flush();
 
         // Se invoca findByIdCurso pasando el ID generado del curso guardado
-        List<Seccion> resultado = seccionRepository.findByIdCurso(curso.getId());
+        List<Seccion> resultado = seccionRepository.findByCurso_Id(curso.getId());
 
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
