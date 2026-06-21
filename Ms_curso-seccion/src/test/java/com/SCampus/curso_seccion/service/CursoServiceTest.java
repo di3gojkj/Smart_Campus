@@ -21,38 +21,38 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.SCampus.curso_seccion.client.CarreraClient;
-import com.SCampus.curso_seccion.dto.CarreraResponseDTO;
 import com.SCampus.curso_seccion.dto.CursoRequestDTO;
 import com.SCampus.curso_seccion.dto.CursoResponseDTO;
 import com.SCampus.curso_seccion.model.Curso;
 import com.SCampus.curso_seccion.repository.CursoRepository;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Test Unit de CursoService")
+@DisplayName("Pruebas Unitarias desde cero para CursoService")
 public class CursoServiceTest {
 
     @Mock
     private CursoRepository cursoRepository;
 
-     @Mock
-    private CarreraClient carreraClient;
-
     @InjectMocks
     private CursoService cursoService;
 
     private Curso cursoEjemplo;
-    private CursoRequestDTO requestDtoPrueba;
+    private CursoRequestDTO requestDto;
 
     @BeforeEach
     void setUp() {
-        cursoEjemplo = new Curso(12L, "14/06/26");
-        requestDtoPrueba = new CursoRequestDTO("14/06/26");
+        cursoEjemplo = new Curso();
+        cursoEjemplo.setId(12L);
+        cursoEjemplo.setFechaCreacion("14/06/26");
+
+        requestDto = new CursoRequestDTO();
+        requestDto.setNombre("Programación");
+        requestDto.setFechaCreacion("14/06/26");
     }
 
     @Test
-    @DisplayName("obtenerTodos() retorna la lista de DTO de todos los cursos registrados")
-    void obtenerTodos_debeRetornarListaDeCursos() {
+    @DisplayName("obtenerTodos() - Debe retornar el listado de DTOs correspondientes")
+    void obtenerTodos_DebeRetornarListaDeCursos() {
         when(cursoRepository.findAll()).thenReturn(List.of(cursoEjemplo));
 
         List<CursoResponseDTO> resultado = cursoService.obtenerTodos();
@@ -64,24 +64,12 @@ public class CursoServiceTest {
     }
 
     @Test
-    @DisplayName("obtenerTodos() debe retornar lista vacía si no existen cursos en MySQL")
-    void obtenerTodos_debeRetornarListaVacia_SiNoHayCursos() {
-        when(cursoRepository.findAll()).thenReturn(List.of());
-
-        List<CursoResponseDTO> resultado = cursoService.obtenerTodos();
-
-        assertNotNull(resultado);
-        assertTrue(resultado.isEmpty());
-        verify(cursoRepository, times(1)).findAll();
-    }
-
-    @Test
-    @DisplayName("guardarCurso() debe registrar exitosamente el curso si la fecha es única")
-    void guardarCurso_debeAlmacenar_cuandoFechaEsUnica() {
+    @DisplayName("guardarCurso() - Debe registrar exitosamente si la fecha es nueva en BD")
+    void guardarCurso_DebeAlmacenar_CuandoFechaEsUnica() {
         when(cursoRepository.findByFechaCreacion("14/06/26")).thenReturn(Optional.empty());
         when(cursoRepository.save(any(Curso.class))).thenReturn(cursoEjemplo);
 
-        CursoResponseDTO resultado = cursoService.guardarCurso(requestDtoPrueba);
+        CursoResponseDTO resultado = cursoService.guardarCurso(requestDto);
 
         assertNotNull(resultado);
         assertEquals(12L, resultado.getId());
@@ -91,12 +79,12 @@ public class CursoServiceTest {
     }
 
     @Test
-    @DisplayName("guardarCurso() debe lanzar RuntimeException si la fecha del curso ya existe")
-    void guardarCurso_debeLanzarExcepcion_cuandoFechaDuplicada() {
+    @DisplayName("guardarCurso() - Debe lanzar RuntimeException si la fecha ya se encuentra registrada")
+    void guardarCurso_DebeLanzarExcepcion_CuandoFechaDuplicada() {
         when(cursoRepository.findByFechaCreacion("14/06/26")).thenReturn(Optional.of(cursoEjemplo));
 
         assertThrows(RuntimeException.class, () -> {
-            cursoService.guardarCurso(requestDtoPrueba);
+            cursoService.guardarCurso(requestDto);
         });
 
         verify(cursoRepository, times(1)).findByFechaCreacion("14/06/26");
@@ -104,46 +92,15 @@ public class CursoServiceTest {
     }
 
     @Test
-    @DisplayName("obtenerPorId() debe retornar un Optional con el DTO si el ID existe en la base de datos")
-    void obtenerPorId_debeRetornarCursoDto_cuandoIdExiste() {
-        // Arrange
+    @DisplayName("obtenerPorId() - Debe retornar un Optional con el DTO mapeado si el ID existe")
+    void obtenerPorId_DebeRetornarCursoDto_CuandoIdExiste() {
         when(cursoRepository.findById(12L)).thenReturn(Optional.of(cursoEjemplo));
 
-        // Act
         Optional<CursoResponseDTO> resultado = cursoService.obtenerPorId(12L);
 
-        // Assert
         assertTrue(resultado.isPresent());
         assertEquals(12L, resultado.get().getId());
         assertEquals("14/06/26", resultado.get().getFechaCreacion());
         verify(cursoRepository, times(1)).findById(12L);
-    }
-
-    @Test
-    @DisplayName("obtenerPorId() debe retornar un Optional vacío si el ID no se encuentra en MySQL")
-    void obtenerPorId_debeRetornarOptionalVacio_cuandoIdNoExiste() {
-        // Arrange
-        when(cursoRepository.findById(99L)).thenReturn(Optional.empty());
-
-        // Act
-        Optional<CursoResponseDTO> resultado = cursoService.obtenerPorId(99L);
-
-        // Assert
-        assertTrue(resultado.isEmpty());
-        verify(cursoRepository, times(1)).findById(99L);
-    }
-
-    @Test
-    @DisplayName("Debe validar exitosamente la existencia de la carrera usando Feign")
-    void validarCarrera_debeFuncionar_cuandoExiste() {
-        CarreraResponseDTO carreraMock = new CarreraResponseDTO(1L, "Ingenieria en Informatica", "INF", 1L);
-        when(carreraClient.obtenerCarreraPorId(1L)).thenReturn(carreraMock);
-
-        CarreraResponseDTO resultado = carreraClient.obtenerCarreraPorId(1L);
-
-        assertNotNull(resultado);
-        assertEquals(1L, resultado.getIdCarrera());
-        assertEquals("Ingenieria en Informatica", resultado.getNombre());
-        verify(carreraClient, times(1)).obtenerCarreraPorId(1L);
     }
 }

@@ -13,6 +13,9 @@ import com.SCampus.curso_seccion.exception.ErrorResponseDTO;
 import com.SCampus.curso_seccion.service.CursoService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,24 +54,42 @@ public class CursoController {
         @ApiResponse(
             responseCode = "400", 
             description = "Fallo de validación. La fecha de creación es obligatoria o no cumple el formato DD/MM/AA",
-            content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ErrorResponseDTO.class))
+            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
         ),
         @ApiResponse(
             responseCode = "409", 
             description = "Conflicto académico. El curso con esa fecha ya se encuentra registrado en el sistema",
-            content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ErrorResponseDTO.class))
+            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
         )
     })
-    public ResponseEntity<CursoResponseDTO> guardar(@Valid @RequestBody CursoRequestDTO curs) {
+    public ResponseEntity<CursoResponseDTO> guardar(@Valid @RequestBody CursoRequestDTO cursoRequestDTO) {
         logger.info("Petición HTTP POST recibida en /api/cursos/guardar");
-        return ResponseEntity.status(HttpStatus.CREATED).body(cursoService.guardarCurso(curs));
+        return ResponseEntity.status(HttpStatus.CREATED).body(cursoService.guardarCurso(cursoRequestDTO));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un curso por su ID", description = "Retorna el DTO del curso si existe, de lo contrario devuelve 404")
-    public ResponseEntity<CursoResponseDTO> obtenerPorId(@PathVariable("id") Long id) {
+    @Operation(
+        summary = "Obtener un curso por su ID", 
+        description = "Busca y devuelve el DTO de un curso específico mediante su identificador único."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Curso localizado exitosamente"),
+        @ApiResponse(
+            responseCode = "404", 
+            description = "No se encontró ningún curso con el ID proporcionado",
+            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))
+        )
+    })
+    public ResponseEntity<CursoResponseDTO> obtenerPorId(
+        @Parameter(description = "ID único del curso a consultar", example = "12", required = true)
+        @PathVariable("id") Long id
+    ) {
+        logger.info("Petición HTTP GET recibida para recuperar Curso ID: {}", id);
         return cursoService.obtenerPorId(id)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> {
+                    logger.warn("El Curso ID {} no fue localizado en la BD", id);
+                    return ResponseEntity.notFound().build();
+                });
     }
 }

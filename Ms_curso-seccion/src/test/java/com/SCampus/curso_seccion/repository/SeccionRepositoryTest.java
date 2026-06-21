@@ -1,73 +1,78 @@
 package com.SCampus.curso_seccion.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest; // Sincronizado con tu pom.xml institucional
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.SCampus.curso_seccion.model.Curso;
 import com.SCampus.curso_seccion.model.Seccion;
+import jakarta.persistence.EntityManager;
 
-@DataJpaTest(properties = {
-    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
-    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
-})
+@SpringBootTest
+@Transactional
 @ActiveProfiles("test")
-@DisplayName("Test del repositorio de secciones en memoria H2")
+@DisplayName("Pruebas Unitarias desde cero para SeccionRepository")
 public class SeccionRepositoryTest {
 
     @Autowired
     private SeccionRepository seccionRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
-
-    private Seccion seccionA;
-    private Seccion seccionB;
-
-    @BeforeEach
-    void setUp() {
-        // Insertamos secciones vinculadas de forma lógica al curso ID 12
-        seccionA = entityManager.persistAndFlush(new Seccion(null, "Sección A", 12L));
-        seccionB = entityManager.persistAndFlush(new Seccion(null, "Sección B", 12L));
-    }
+    private EntityManager entityManager;
 
     @Test
-    @DisplayName("findByIdCurso() debe retornar el listado completo de secciones asociadas a ese curso padre")
-    void findByIdCurso_debeRetornarListaDeSecciones() {
-        List<Seccion> resultado = seccionRepository.findByIdCurso(12L);
+    @DisplayName("findByIdCurso() - Debe retornar secciones asociadas al ID numérico del curso")
+    void findByIdCurso_DebeRetornarListaDeSecciones() {
+        Curso curso = new Curso(null, "14/06/26");
+        entityManager.persist(curso);
+        entityManager.flush();
+
+        Seccion seccion = new Seccion();
+        seccion.setNombre("Sección Alpha");
+        seccion.setCurso(curso);
+        entityManager.persist(seccion);
+        entityManager.flush();
+
+        // Se invoca findByIdCurso pasando el ID generado del curso guardado
+        List<Seccion> resultado = seccionRepository.findByIdCurso(curso.getId());
 
         assertNotNull(resultado);
-        assertEquals(2, resultado.size());
-        assertEquals("Sección A", resultado.get(0).getNombre());
+        assertEquals(1, resultado.size());
+        assertEquals("Sección Alpha", resultado.get(0).getNombre());
     }
 
     @Test
-    @DisplayName("findByNombreIgnoreCase() debe localizar el registro ignorando mayúsculas o minúsculas")
-    void findByNombreIgnoreCase_debeRetornarSeccion_cuandoExiste() {
-        Optional<Seccion> resultado = seccionRepository.findByNombreIgnoreCase("SECCIÓN B");
+    @DisplayName("findByNombreIgnoreCase() - Debe localizar la sección omitiendo mayúsculas")
+    void findByNombreIgnoreCase_DebeRetornarSeccion_CuandoExiste() {
+        Curso curso = new Curso(null, "14/06/26");
+        entityManager.persist(curso);
+
+        Seccion seccion = new Seccion();
+        seccion.setNombre("Matutina");
+        seccion.setCurso(curso);
+        entityManager.persist(seccion);
+        entityManager.flush();
+
+        Optional<Seccion> resultado = seccionRepository.findByNombreIgnoreCase("MATUTINA");
 
         assertTrue(resultado.isPresent());
-        assertEquals("Sección B", resultado.get().getNombre());
-        assertEquals(12L, resultado.get().getIdCurso());
+        assertEquals("Matutina", resultado.get().getNombre());
     }
 
     @Test
-    @DisplayName("findByNombreIgnoreCase() debe retornar un Optional vacío si el nombre no se encuentra")
-    void findByNombreIgnoreCase_debeRetornarVacio_cuandoNoExiste() {
-        Optional<Seccion> resultado = seccionRepository.findByNombreIgnoreCase("Sección Inexistente");
-
-        assertFalse(resultado.isPresent());
+    @DisplayName("findByNombreIgnoreCase() - Debe retornar vacío si el nombre no concuerda")
+    void findByNombreIgnoreCase_DebeRetornarVacio_CuandoNoExiste() {
+        Optional<Seccion> resultado = seccionRepository.findByNombreIgnoreCase("Inexistente");
+        assertTrue(resultado.isEmpty());
     }
 }

@@ -1,10 +1,12 @@
 package com.SCampus.curso_seccion.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,12 +22,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.SCampus.curso_seccion.client.CarreraAsignaturaClient;
+import com.SCampus.curso_seccion.dto.CarreraAsignaturaResponseDTO;
+import com.SCampus.curso_seccion.dto.SeccionResponseDTO;
+import com.SCampus.curso_seccion.model.Curso;
 import com.SCampus.curso_seccion.model.Seccion;
 import com.SCampus.curso_seccion.repository.CursoRepository;
 import com.SCampus.curso_seccion.repository.SeccionRepository;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Test Unit de SeccionService")
+@DisplayName("Pruebas Unitarias Integradas para SeccionService (Con Mock OpenFeign)")
 public class SeccionServiceTest {
 
     @Mock
@@ -34,74 +40,130 @@ public class SeccionServiceTest {
     @Mock
     private CursoRepository cursoRepository;
 
+    @Mock
+    private CarreraAsignaturaClient carreraAsignaturaClient; // 🛠️ Mock de la integración remota
+
     @InjectMocks
     private SeccionService seccionService;
 
+    private Curso cursoMock;
     private Seccion seccionEjemplo;
+    private CarreraAsignaturaResponseDTO relacionMock;
 
     @BeforeEach
     void setUp() {
-        seccionEjemplo = new Seccion(5L, "Sección A", 12L);
+        cursoMock = new Curso();
+        cursoMock.setId(45L);
+        cursoMock.setFechaCreacion("14/06/26");
+
+        seccionEjemplo = new Seccion();
+        seccionEjemplo.setId(101L);
+        seccionEjemplo.setNombre("Sección B");
+        seccionEjemplo.setCurso(cursoMock);
+
+        // Instanciamos la respuesta simulada que viene de Ms_Carrera
+        relacionMock = new CarreraAsignaturaResponseDTO();
+        relacionMock.setIdCarreraAsignatura(1L);
+        relacionMock.setIdCarrera(1L);
+        relacionMock.setIdAsignatura(5L);
+        relacionMock.setNombreAsignatura("Desarrollo en Fullstack");
+        relacionMock.setNombreSemestre("2026-1");
     }
 
     @Test
-    @DisplayName("obtenerTodas() retorna el listado de todas las secciones académicas")
-    void obtenerTodas_debeRetornarListaDeSecciones() {
+    @DisplayName("obtenerTodasEnriquecidas() - Debe retornar DTOs con la metadata externa inyectada")
+    void obtenerTodasEnriquecidas_DebeRetornarPayloadConsolidado() {
+        // Arrange
         when(seccionRepository.findAll()).thenReturn(List.of(seccionEjemplo));
+        when(carreraAsignaturaClient.listarPorCarrera(1L)).thenReturn(List.of(relacionMock));
 
-        List<Seccion> resultado = seccionService.obtenerTodas();
+        // Act
+        List<SeccionResponseDTO> resultado = seccionService.obtenerTodasEnriquecidas();
 
+        // Assert
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
-        assertEquals("Sección A", resultado.get(0).getNombre());
+        assertEquals("Sección B", resultado.get(0).getNombre());
+        assertNotNull(resultado.get(0).getDatosAcademicos());
+        assertEquals("Desarrollo en Fullstack", resultado.get(0).getDatosAcademicos().getNombreAsignatura());
+        
+        verify(seccionRepository, times(1)).findAll();
+        verify(carreraAsignaturaClient, times(1)).listarPorCarrera(1L);
+    }
+
+    @Test
+    @DisplayName("obtenerTodasEnriquecidas() - Debe ser resiliente si Ms_Carrera falla de fondo")
+    void obtenerTodasEnriquecidas_DebeRetornarDatosLocales_CuandoFallaClienteFeign() {
+        // Arrange
+        when(seccionRepository.findAll()).thenReturn(List.of(seccionEjemplo));
+        when(carreraAsignaturaClient.listarPorCarrera(1L)).thenThrow(new RuntimeException("Timeout HTTP"));
+
+        // Act
+        List<SeccionResponseDTO> resultado = seccionService.obtenerTodasEnriquecidas();
+
+        // Assert
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        assertNull(resultado.get(0).getDatosAcademicos()); // Resiliencia: La sección se entrega pero sin datos externos
+        
         verify(seccionRepository, times(1)).findAll();
     }
 
     @Test
-    @DisplayName("obtenerPorId() retorna un Optional con la sección cuando el ID coincide")
-    void obtenerPorId_debeRetornarSeccion_cuandoIdExiste() {
-        when(seccionRepository.findById(5L)).thenReturn(Optional.of(seccionEjemplo));
-
-        Optional<Seccion> resultado = seccionService.obtenerPorId(5L);
-
-        assertTrue(resultado.isPresent());
-        assertEquals("Sección A", resultado.get().getNombre());
-        verify(seccionRepository, times(1)).findById(5L);
-    }
-
-    @Test
-    @DisplayName("guardar() almacena con éxito la sección si el ID de curso existe")
-    void guardar_debeAlmacenarSeccion_cuandoCursoPadreExiste() {
-        when(cursoRepository.existsById(12L)).thenReturn(true);
+    @DisplayName("guardarEnriquecido() - Debe almacenar con éxito si las validaciones local y remota pasan")
+    void guardarEnriquecido_DebeGuardar_CuandoCursoYCarreraExisten() {
+        // Arrange
+        when(cursoRepository.existsById(45L)).thenReturn(true);
+        when(carreraAsignaturaClient.listarPorCarrera(1L)).thenReturn(List.of(relacionMock));
         when(seccionRepository.save(any(Seccion.class))).thenReturn(seccionEjemplo);
 
-        Seccion resultado = seccionService.guardar(seccionEjemplo);
+        // Act
+        SeccionResponseDTO resultado = seccionService.guardarEnriquecido(seccionEjemplo, 1L);
 
+        // Assert
         assertNotNull(resultado);
-        assertEquals(5L, resultado.getId());
-        assertEquals(12L, resultado.getIdCurso());
-        verify(cursoRepository, times(1)).existsById(12L);
+        assertEquals(101L, resultado.getId());
+        assertNotNull(resultado.getDatosAcademicos());
+        assertEquals("Desarrollo en Fullstack", resultado.getDatosAcademicos().getNombreAsignatura());
+
+        verify(cursoRepository, times(1)).existsById(45L);
+        verify(carreraAsignaturaClient, times(2)).listarPorCarrera(1L); // Una para validar, otra para mapear
         verify(seccionRepository, times(1)).save(any(Seccion.class));
     }
 
     @Test
-    @DisplayName("guardar() debe lanzar RuntimeException si se asigna un ID de curso que no existe")
-    void guardar_debeLanzarExcepcion_cuandoCursoPadreNoExiste() {
-        when(cursoRepository.existsById(12L)).thenReturn(false);
+    @DisplayName("guardarEnriquecido() - Debe lanzar excepción si la carrera remota no posee asignaturas asignadas")
+    void guardarEnriquecido_DebeLanzarExcepcion_CuandoCarreraRemotaEstaVacia() {
+        // Arrange
+        when(cursoRepository.existsById(45L)).thenReturn(true);
+        when(carreraAsignaturaClient.listarPorCarrera(1L)).thenReturn(Collections.emptyList());
 
+        // Act & Assert
         assertThrows(RuntimeException.class, () -> {
-            seccionService.guardar(seccionEjemplo);
+            seccionService.guardarEnriquecido(seccionEjemplo, 1L);
         });
 
-        verify(cursoRepository, times(1)).existsById(12L);
+        verify(cursoRepository, times(1)).existsById(45L);
+        verify(carreraAsignaturaClient, times(1)).listarPorCarrera(1L);
         verify(seccionRepository, never()).save(any(Seccion.class));
     }
 
     @Test
-    @DisplayName("eliminar() remueve el registro físico de la base de datos a partir de su ID")
-    void eliminar_debeEjecutarBorrado() {
-        seccionService.eliminar(5L);
+    @DisplayName("obtenerPorIdEnriquecido() - Debe retornar el DTO consolidado si el identificador existe localmente")
+    void obtenerPorIdEnriquecido_DebeRetornarDTO_CuandoIdExiste() {
+        // Arrange
+        when(seccionRepository.findById(101L)).thenReturn(Optional.of(seccionEjemplo));
+        when(carreraAsignaturaClient.listarPorCarrera(1L)).thenReturn(List.of(relacionMock));
 
-        verify(seccionRepository, times(1)).deleteById(5L);
+        // Act
+        Optional<SeccionResponseDTO> resultado = seccionService.obtenerPorIdEnriquecido(101L);
+
+        // Assert
+        assertTrue(resultado.isPresent());
+        assertEquals("Sección B", resultado.get().getNombre());
+        assertEquals("Desarrollo en Fullstack", resultado.get().getDatosAcademicos().getNombreAsignatura());
+        
+        verify(seccionRepository, times(1)).findById(101L);
     }
 }
+

@@ -21,8 +21,12 @@ public class CursoService {
 
     private final CursoRepository cursoRepository;
 
+    
     private CursoResponseDTO mapToDTO(Curso c) {
-        return new CursoResponseDTO(c.getId(), c.getFechaCreacion());
+        CursoResponseDTO dto = new CursoResponseDTO();
+        dto.setId(c.getId());
+        dto.setFechaCreacion(c.getFechaCreacion());
+        return dto;
     }
 
     @Transactional(readOnly = true)
@@ -35,22 +39,25 @@ public class CursoService {
 
     @Transactional
     public CursoResponseDTO guardarCurso(CursoRequestDTO dto) {
-        log.info("Intentando registrar un nuevo periodo de curso académico: {}", dto.getFechaCreacion());
+        log.info("Intentando registrar un nuevo periodo de curso académico: {}", dto.getNombre());
         
         if (cursoRepository.findByFechaCreacion(dto.getFechaCreacion()).isPresent()) {
             log.warn("Rechazo de persistencia: El curso con fecha {} ya se encuentra registrado", dto.getFechaCreacion());
             throw new RuntimeException("Conflicto Académico: El curso con esa fecha ya existe.");
         }
 
-        Curso curso = new Curso(null, dto.getFechaCreacion());
+        
+        Curso curso = new Curso();
+        curso.setFechaCreacion(dto.getFechaCreacion());
+        
         Curso guardado = cursoRepository.save(curso);
         log.info("Curso guardado exitosamente en la BD local con ID: {}", guardado.getId());
         return mapToDTO(guardado);
     }
 
+    @Transactional(readOnly = true)
     public Optional<CursoResponseDTO> obtenerPorId(Long id) {
-    return cursoRepository.findById(id)
-            .map(curso -> new CursoResponseDTO(curso.getId(), curso.getFechaCreacion()));
+        log.info("Buscando curso por ID: {}", id);
+        return cursoRepository.findById(id).map(this::mapToDTO);
+    }
 }
-}
-
