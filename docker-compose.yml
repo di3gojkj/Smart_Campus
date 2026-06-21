@@ -32,8 +32,8 @@ services:
     restart: on-failure
     networks:
       - microservicios-net
-  
-  #Servicio ms-gestion-estado
+
+  #1. Ms_Gestion_Estado — no depende de nadie más
   ms-gestion-estado:
     build:
       context: ./Ms_Gestion_Estado/Ms_Gestion_Estado
@@ -52,7 +52,7 @@ services:
           aliases:
             - gestion-estado
 
-  #Servicio ms-gestion-usuario
+  #2. Ms_Gestion_Usuario — depende de Estado
   ms-gestion-usuario:
     build:
       context: ./MS_Gestión_Usuario/MS_Gestión_Usuario
@@ -65,13 +65,15 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      ms-gestion-estado:
+        condition: service_started
     restart: on-failure
     networks:
       microservicios-net:
           aliases:
             - gestion-usuario
 
-  #Servicio ms-confi
+  #3. Ms_Confi — depende de Usuario
   ms-confi:
     build:
       context: ./MS_confi 
@@ -84,13 +86,15 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      ms-gestion-usuario:
+        condition: service_started
     restart: on-failure
     networks:
       microservicios-net:
           aliases:
             - confi
 
-  #Servicio ms-asignatura
+  #4. Ms_Asignatura — depende de Estado
   ms-asignatura:
     build:
       context: ./Ms_Asignatura/msAsignatura
@@ -103,13 +107,15 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      ms-gestion-estado:
+        condition: service_started
     restart: on-failure
     networks:
       microservicios-net:
           aliases:
             - asignatura
 
-  #Servicio ms-carrera
+  #5. Ms_Carrera — depende de Asignatura y Estado
   ms-carrera:
     build:
       context: ./Ms_Carrera/Ms_Carrera 
@@ -122,13 +128,17 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      ms-gestion-estado:
+        condition: service_started
+      ms-asignatura:
+        condition: service_started
     restart: on-failure
     networks:
       microservicios-net:
           aliases:
             - carrera
 
-  #Servicio ms-curso-seccion
+  #6. Ms_curso-seccion — depende de Carrera
   ms-curso-seccion:
     build:
       context: ./Ms_curso-seccion 
@@ -141,13 +151,15 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      ms-carrera:
+        condition: service_started
     restart: on-failure
     networks:
       microservicios-net:
           aliases:
             - curso-seccion
   
-  #Servicio ms-gestion-lista
+  #7. Ms_Gestion_Lista — depende de curso-seccion y Usuario
   ms-gestion-lista:
     build:
       context: ./Ms_Gestión_Lista/Ms_Gestión_Lista 
@@ -160,13 +172,17 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      ms-curso-seccion:
+        condition: service_started
+      ms-gestion-usuario:
+        condition: service_started
     restart: on-failure
     networks:
       microservicios-net:
           aliases:
             - gestion-lista
 
-  #Servicio ms-evaluacion
+  #8. Ms_Evaluacion — no requiere a nadie
   ms-evaluacion:
     build:
       context: ./Ms_Evaluacion/Ms_Evaluacion
@@ -185,7 +201,7 @@ services:
           aliases:
             - evaluacion
 
-  #Servicio ms-cur-eva
+  #9. Ms_cur-eva — depende de curso-seccion y Evaluacion
   ms-cur-eva:
     build:
       context: ./MS_cur_eva 
@@ -198,13 +214,17 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      ms-curso-seccion:
+        condition: service_started
+      ms-evaluacion:
+        condition: service_started
     restart: on-failure
     networks:
       microservicios-net:
           aliases:
             - curso-evaluacion
 
-  #Servicio ms-tipo-asistencia
+  #10. Ms_tipo-asistencia — depende de Lista
   ms-tipo-asistencia:
     build:
       context: ./Ms_tipo-asistencia 
@@ -217,13 +237,15 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      ms-gestion-lista:
+        condition: service_started
     restart: on-failure
     networks:
       microservicios-net:
           aliases:
             - tipo-evaluacion
 
-  #Servicio 5: apigateway
+  #Servicio: apigateway
   api-gateway:
     build:
       context: ./apigateway 
