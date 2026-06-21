@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.SCampus.curso_seccion.dto.CarreraResponseDTO;
 
-@FeignClient(name = "Ms-Carrera", url = "http://localhost:8060")
+@FeignClient(name = "Ms-Carrera", url = "${ms.carrera.url}")
 public interface CarreraClient {
 
     // Asegúrate de colocar la ruta exacta de tu @RestController en Ms_Carrera

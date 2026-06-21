@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.cur_eva.dto.EvaluacionResponseDTO;
 import com.cur_eva.dto.TipoEvaluacionResponseDTO; // Importación del nuevo DTO local
 
-@FeignClient(name = "Ms-Evaluacion", url = "http://localhost:8090")
+@FeignClient(name = "Ms-Evaluacion", url = "${ms.evaluacion.url}")
 public interface EvaluacionClient {
 
     // Método original: Buscar Evaluación por ID

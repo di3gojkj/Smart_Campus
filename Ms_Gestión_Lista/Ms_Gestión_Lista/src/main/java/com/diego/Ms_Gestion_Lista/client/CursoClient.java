@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.diego.Ms_Gestion_Lista.dto.CursoResponseDTO;
 
-@FeignClient(name = "curso-seccion", url = "http://localhost:8098"  )
+@FeignClient(name = "curso-seccion", url = "${ms.curso.url}"  )
 public interface CursoClient {
     @GetMapping
     CursoResponseDTO obtenerPorId(@PathVariable Long id);

@@ -34,7 +34,7 @@ CREATE DATABASE IF NOT EXISTS db_usuario
  COLLATE utf8mb4_unicode_ci;
 
 -- Crear la BD para ms-clientes
-CREATE DATABASE IF NOT EXISTS db_tipo-asistencia
+CREATE DATABASE IF NOT EXISTS db_tipo_asistencia
  CHARACTER SET utf8mb4
  COLLATE utf8mb4_unicode_ci;
 
@@ -47,6 +47,6 @@ GRANT ALL PRIVILEGES ON db_curso_seccion.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_evaluacion.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_academico.* TO 'root'@'%';
 GRANT ALL PRIVILEGES ON db_usuario.* TO 'root'@'%';
-GRANT ALL PRIVILEGES ON db_tipo-asistencia.* TO 'root'@'%';
+GRANT ALL PRIVILEGES ON db_tipo_asistencia.* TO 'root'@'%';
 -- Aplique los permisos inmediatamente
 FLUSH PRIVILEGES;
