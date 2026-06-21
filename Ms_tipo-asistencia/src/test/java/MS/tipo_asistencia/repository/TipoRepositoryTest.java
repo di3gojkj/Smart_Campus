@@ -12,51 +12,77 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.ActiveProfiles;
 
-import MS.tipo_asistencia.model.Tipo; // CORREGIDO: Importa 'Tipo'
+import MS.tipo_asistencia.model.Tipo;
+import jakarta.persistence.EntityManager;
 
-@DataJpaTest(properties = {
-    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
-    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
-})
+@SpringBootTest
+@Transactional
 @ActiveProfiles("test")
-@DisplayName("Test del repositorio de tipos de asistencia en memoria H2")
+@DisplayName("Pruebas Paramétricas desde cero para TipoRepository")
 public class TipoRepositoryTest {
 
     @Autowired
     private TipoRepository tipoRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private EntityManager entityManager;
 
-    private Tipo presente;
-    private Tipo ausente;
+    private Tipo tipoBase;
 
     @BeforeEach
     void setUp() {
-        // CORREGIDO: Instanciación limpia de la clase Tipo
-        presente = entityManager.persistAndFlush(new Tipo(null, "PRESENTE"));
-        ausente = entityManager.persistAndFlush(new Tipo(null, "AUSENTE"));
+        // Inicializamos una clasificación paramétrica respetando las restricciones de tu modelo físico
+        tipoBase = new Tipo();
+        tipoBase.setNombre("JUSTIFICADO");
+
+        entityManager.persist(tipoBase);
+        entityManager.flush();
     }
 
     @Test
-    @DisplayName("findAll() debe retornar todos los tipos de asistencia")
-    void findAll_debeRetornarTodoElCatalogo() {
-        List<Tipo> tipos = tipoRepository.findAll();
-        assertNotNull(tipos);
-        assertEquals(2, tipos.size());
+    @DisplayName("findAll() - Debe retornar el catálogo completo de clasificaciones registradas")
+    void findAll_DebeRetornarTodosLosTiposDeAsistencia() {
+        List<Tipo> resultado = tipoRepository.findAll();
+
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        assertEquals("JUSTIFICADO", resultado.get(0).getNombre());
     }
 
     @Test
-    @DisplayName("findById() debe retornar el tipo correcto")
-    void findById_debeRetornarTipo_cuandoExiste() {
-        Optional<Tipo> resultado = tipoRepository.findById(presente.getIdTipo());
+    @DisplayName("findById() - Debe recuperar exitosamente una clasificación paramétrica por su clave primaria")
+    void findById_DebeRetornarTipo_CuandoIdExiste() {
+        Optional<Tipo> resultado = tipoRepository.findById(tipoBase.getIdTipo());
+
         assertTrue(resultado.isPresent());
-        assertEquals("PRESENTE", resultado.get().getNombre());
+        assertEquals("JUSTIFICADO", resultado.get().getNombre());
+        assertEquals(tipoBase.getIdTipo(), resultado.get().getIdTipo());
+    }
+
+    @Test
+    @DisplayName("findById() - Debe retornar un Optional vacío si el identificador no existe en MySQL")
+    void findById_DebeRetornarVacio_CuandoIdNoExiste() {
+        Optional<Tipo> resultado = tipoRepository.findById(999L);
+        assertFalse(resultado.isPresent());
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    @DisplayName("save() - Debe registrar una nueva clasificación en el catálogo de manera correcta")
+    void save_DebePersistirNuevoTipo_CuandoSeProcesaEntidad() {
+        Tipo nuevoTipo = new Tipo();
+        nuevoTipo.setNombre("INASISTENCIA_INJUSTIFICADA");
+
+        Tipo guardado = tipoRepository.save(nuevoTipo);
+
+        assertNotNull(guardado.getIdTipo());
+        assertEquals("INASISTENCIA_INJUSTIFICADA", guardado.getNombre());
+        
+        // Verificamos que se haya incrementado el total en el repositorio local
+        assertEquals(2, tipoRepository.count());
     }
 }
-

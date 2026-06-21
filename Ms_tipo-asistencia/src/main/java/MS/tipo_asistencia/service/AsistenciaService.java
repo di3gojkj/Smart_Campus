@@ -1,115 +1,114 @@
 package MS.tipo_asistencia.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import feign.FeignException;
 
+import MS.tipo_asistencia.client.GestionListaClient;
 import MS.tipo_asistencia.dto.AsistenciaRequestDTO;
 import MS.tipo_asistencia.dto.AsistenciaResponseDTO;
-import MS.tipo_asistencia.dto.TipoResponseDTO;
+import MS.tipo_asistencia.dto.ListaResponseDTO;
 import MS.tipo_asistencia.model.Asistencia;
 import MS.tipo_asistencia.model.Tipo;
 import MS.tipo_asistencia.repository.AsistenciaRepository;
 import MS.tipo_asistencia.repository.TipoRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AsistenciaService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AsistenciaService.class);
+
     private final AsistenciaRepository asistenciaRepository;
-    // CORREGIDO: El nombre de la variable debe empezar con minúscula 'tipoRepository'
     private final TipoRepository tipoRepository;
+    private final GestionListaClient listaClient; // 🛠️ Nuestro cliente OpenFeign
+
+    /**
+     * Mapea la entidad de persistencia hacia su DTO de salida incorporando
+     * el enriquecimiento dinámico sincrónico desde el microservicio externo.
+     */
+    private AsistenciaResponseDTO toResponseDTO(Asistencia a) {
+        AsistenciaResponseDTO dto = new AsistenciaResponseDTO();
+        dto.setIdAsistencia(a.getIdAsistencia());
+        dto.setFecha(a.getFecha());
+        dto.setIdLista(a.getIdLista());
+        dto.setTipo(a.getTipo());
+
+        // Bloque de integración distribuida sincrónica y tolerante a fallos
+        if (a.getIdLista() != null) {
+            try {
+                ListaResponseDTO inscripcionRemota = listaClient.buscarPorId(a.getIdLista());
+                dto.setDatosInscripcion(inscripcionRemota);
+            } catch (Exception e) {
+                logger.error("Error al consultar MS Gestion Lista (ID Lista: {}): {}", a.getIdLista(), e.getMessage());
+                // Tolerancia a fallos: se entregan datos locales sin tumbar la API de asistencia
+                dto.setDatosInscripcion(null);
+            }
+        }
+        return dto;
+    }
 
     @Transactional(readOnly = true)
     public List<AsistenciaResponseDTO> obtenerTodas() {
-        log.info("Listando todas las asistencias académicas");
+        logger.info("[AsistenciaService] Consultando listado completo de asistencias registradas");
         return asistenciaRepository.findAll().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public AsistenciaResponseDTO obtenerPorId(Long id) {
-        log.info("Buscando registro de asistencia con ID: {}", id);
-        Asistencia asistencia = asistenciaRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Asistencia no encontrada con ID: {}", id);
-                    return new RuntimeException("Asistencia no encontrada con ID: " + id);
-                });
-        return toResponseDTO(asistencia);
+    public Optional<AsistenciaResponseDTO> obtenerPorId(Long id) {
+        logger.info("[AsistenciaService] Buscando registro de asistencia por ID: {}", id);
+        return asistenciaRepository.findById(id).map(this::toResponseDTO);
     }
 
+    /**
+     * Almacena un registro tras ejecutar la validación perimetral dual (local + remota)
+     */
     @Transactional
-    public AsistenciaResponseDTO crear(AsistenciaRequestDTO dto) {
-        log.info("Creando nueva asistencia para la fecha: {}", dto.getFecha());
+    public AsistenciaResponseDTO guardar(AsistenciaRequestDTO dto) {
+        logger.info("[AsistenciaService] Procesando alta de asistencia para la fecha: {}", dto.getFecha());
 
-        Tipo tipo = tipoRepository.findById(dto.getTipoId())
-                .orElseThrow(() -> new RuntimeException("No se puede crear asistencia. Tipo ID " + dto.getTipoId() + " no existe"));
+        // 1. Validación de Integridad Lógica Local (Tipo de asistencia)
+        Tipo tipoLocal = tipoRepository.findById(dto.getIdTipo())
+                .orElseThrow(() -> new RuntimeException("Error de Negocio: El ID de Tipo de asistencia especificado no existe en el catálogo local."));
 
-        Asistencia asistencia = mapearAEntidad(dto, tipo);
+        // 2. Validación de Integridad Referencial Distribuida (Lista de inscripción)
+        if (dto.getIdLista() != null) {
+            try {
+                logger.info("[AsistenciaService] Verificando existencia de ID de lista remota: {}", dto.getIdLista());
+                listaClient.buscarPorId(dto.getIdLista());
+            } catch (FeignException.NotFound e) {
+                throw new RuntimeException("Error de Consistencia Distribuida: La lista/inscripción con ID " + dto.getIdLista() + " no existe en gestion_lista.");
+            } catch (Exception e) {
+                throw new RuntimeException("El servicio externo gestion_lista no se encuentra disponible temporalmente.");
+            }
+        }
+
+        // Mapeo e inserción física en MySQL
+        Asistencia asistencia = new Asistencia();
+        asistencia.setFecha(dto.getFecha());
+        asistencia.setIdLista(dto.getIdLista());
+        asistencia.setTipo(tipoLocal);
+
         Asistencia guardada = asistenciaRepository.save(asistencia);
-        log.info("Asistencia creada exitosamente con ID: {}", guardada.getIdAsistencia());
+        logger.info("[AsistenciaService] Asistencia guardada con éxito bajo el ID: {}", guardada.getIdAsistencia());
 
         return toResponseDTO(guardada);
     }
 
     @Transactional
-    public AsistenciaResponseDTO actualizar(Long id, AsistenciaRequestDTO dto) {
-        log.info("Actualizando asistencia con ID: {}", id);
-
-        Asistencia asistencia = asistenciaRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("No se pudo actualizar. Asistencia ID: {} no existe", id);
-                    return new RuntimeException("Asistencia no encontrada con ID: " + id);
-                });
-
-        Tipo tipo = tipoRepository.findById(dto.getTipoId())
-                .orElseThrow(() -> new RuntimeException("Tipo ID " + dto.getTipoId() + " no existe"));
-
-        asistencia.setFecha(dto.getFecha());
-        asistencia.setTipo(tipo);
-
-        Asistencia actualizada = asistenciaRepository.save(asistencia);
-        log.info("Asistencia ID: {} actualizada exitosamente", id);
-
-        return toResponseDTO(actualizada);
-    }
-
-    @Transactional
     public void eliminar(Long id) {
-        log.info("Intentando eliminar asistencia con ID: {}", id);
-        if (!asistenciaRepository.existsById(id)) {
-            log.warn("No se pudo eliminar. Asistencia ID: {} no existe", id);
-            throw new RuntimeException("No se puede eliminar. Asistencia no encontrada con ID: " + id);
-        }
+        logger.info("[AsistenciaService] Removiendo registro físico de asistencia con ID: {}", id);
         asistenciaRepository.deleteById(id);
-        log.info("Asistencia ID: {} eliminada correctamente", id);
-    }
-
-    private AsistenciaResponseDTO toResponseDTO(Asistencia a) {
-        AsistenciaResponseDTO dto = new AsistenciaResponseDTO();
-        dto.setIdAsistencia(a.getIdAsistencia());
-        dto.setFecha(a.getFecha());
-        
-        if (a.getTipo() != null) {
-            TipoResponseDTO tipoDTO = new TipoResponseDTO();
-            tipoDTO.setIdTipo(a.getTipo().getIdTipo());
-            tipoDTO.setNombre(a.getTipo().getNombre());
-            dto.setTipo(tipoDTO);
-        }
-        return dto;
-    }
-
-    private Asistencia mapearAEntidad(AsistenciaRequestDTO dto, Tipo tipo) {
-        Asistencia a = new Asistencia();
-        a.setFecha(dto.getFecha());
-        a.setTipo(tipo);
-        return a;
     }
 }
+
 
