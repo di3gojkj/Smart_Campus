@@ -38,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
 
             log.info("[DataInitializer]: Datos iniciales cargados correctamente");
         } else {
-            log.info("[DataInitializer]: La tabla Carrera y Carrera-Asig ya contiene datos, omitiendo carga...");
+            log.info("[DataInitializer]: La tabla Carrera y Carrera-Asig ya contiene datos, omitiendo carga...");   
         }
     }
 
