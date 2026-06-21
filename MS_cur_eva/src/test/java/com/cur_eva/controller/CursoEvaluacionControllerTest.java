@@ -2,17 +2,21 @@ package com.cur_eva.controller;
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest; // Sincronizado con tu pom.xml institucional
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -21,91 +25,91 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.cur_eva.dto.CursoEvaluacionRequestDTO;
 import com.cur_eva.dto.CursoEvaluacionResponseDTO;
 import com.cur_eva.service.CursoEvaluacionService;
 
-@WebMvcTest(CursoEvaluacionController.class)
-@DisplayName("Tests del CursoEvaluacionController con MockMvc")
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Pruebas Unitarias desde cero para CursoEvaluacionController")
 public class CursoEvaluacionControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Mock
     private CursoEvaluacionService cursoEvaluacionService;
 
+    @InjectMocks
+    private CursoEvaluacionController cursoEvaluacionController;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private CursoEvaluacionResponseDTO responseMock;
+
+    @BeforeEach
+    void setUp() {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(cursoEvaluacionController).build();
+
+        // Armamos el objeto de respuesta simulado con metadatos locales y remotos
+        responseMock = new CursoEvaluacionResponseDTO();
+        responseMock.setIdCursoEvaluacion(1L);
+        responseMock.setNombre("ACTIVO");
+        responseMock.setIdCurso(12L);
+        responseMock.setIdEvaluacion(100L);
+        responseMock.setNombreEvaluacion("Certamen 1");
+        responseMock.setNombreTipoEvaluacion("Certamen");
+    }
 
     @Test
-    @DisplayName("GET /api/estados debe retornar un JSON con la lista de evaluaciones y el codigo 200")
-    void obtenerTodos_debeRetornar200ConListaDeEvaluaciones() throws Exception {
-        // Arrange: Creamos un DTO de respuesta simulado
-        CursoEvaluacionResponseDTO responseDto = new CursoEvaluacionResponseDTO(
-            1L, "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20"
-        );
-        
-        when(cursoEvaluacionService.obtenerTodos()).thenReturn(List.of(responseDto));
+    @DisplayName("GET /api/cur-eva - Debe retornar 200 con el listado consolidado")
+    void obtenerTodos_DebeRetornarStatus200YLista() throws Exception {
+        when(cursoEvaluacionService.obtenerTodos()).thenReturn(List.of(responseMock));
 
-        // Act & Assert
-        mockMvc.perform(get("/api/estados")
+        mockMvc.perform(get("/api/cur-eva")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print()) // Imprime la traza por consola para seguimiento
-                .andExpect(status().isOk()) // HTTP 200
+                .andDo(print())
+                .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].idCursoEvaluacion").value(1))
                 .andExpect(jsonPath("$[0].nombre").value("ACTIVO"))
-                .andExpect(jsonPath("$[0].fCreacion").value("2026-06-15"));
+                .andExpect(jsonPath("$[0].nombreEvaluacion").value("Certamen 1"));
 
         verify(cursoEvaluacionService, times(1)).obtenerTodos();
     }
 
     @Test
-    @DisplayName("GET /api/estados/{id} debe retornar la evaluación correspondiente y el codigo 200")
-    void obtenerPorId_debeRetornar200ConEvaluacion() throws Exception {
-        // Arrange
-        CursoEvaluacionResponseDTO responseDto = new CursoEvaluacionResponseDTO(
-            1L, "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20"
-        );
-        
-        when(cursoEvaluacionService.obtenerPorId(1L)).thenReturn(responseDto);
+    @DisplayName("GET /api/cur-eva/{id} - Debe retornar 200 si el registro existe en la base de datos")
+    void obtenerPorId_DebeRetornarStatus200_CuandoIdExiste() throws Exception {
+        when(cursoEvaluacionService.obtenerPorId(1L)).thenReturn(responseMock);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/estados/1")
+        mockMvc.perform(get("/api/cur-eva/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.idCursoEvaluacion").value(1))
-                .andExpect(jsonPath("$.nombre").value("ACTIVO"));
+                .andExpect(jsonPath("$.nombreTipoEvaluacion").value("Certamen"));
 
         verify(cursoEvaluacionService, times(1)).obtenerPorId(1L);
     }
 
     @Test
-    @DisplayName("POST /api/estados debe retornar 201 con datos validos")
-    void crear_debeRetornar201_cuandoDatosValidos() throws Exception {
-      
-        CursoEvaluacionRequestDTO request = new CursoEvaluacionRequestDTO(
-            "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20", 5L
-        );
-        CursoEvaluacionResponseDTO response = new CursoEvaluacionResponseDTO(
-            1L, "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20"
-        );
-        
-        when(cursoEvaluacionService.guardar(any(CursoEvaluacionRequestDTO.class))).thenReturn(response);
+    @DisplayName("POST /api/cur-eva - Debe retornar 201 al procesar un cuerpo de entrada válido")
+    void crear_DebeRetornarStatus201YPayloadEnriquecido() throws Exception {
+        CursoEvaluacionRequestDTO requestDTO = new CursoEvaluacionRequestDTO();
+        requestDTO.setNombre("ACTIVO");
+        requestDTO.setIdCurso(12L);
+        requestDTO.setIdEvaluacion(100L);
 
-        // Act & Assert
-        mockMvc.perform(post("/api/estados")
+        when(cursoEvaluacionService.guardar(any(CursoEvaluacionRequestDTO.class))).thenReturn(responseMock);
+
+        mockMvc.perform(post("/api/cur-eva")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))) // Serializa objeto Java a JSON String
+                .content(objectMapper.writeValueAsString(requestDTO)))
                 .andDo(print())
-                .andExpect(status().isCreated()) // HTTP 201 Created
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.idCursoEvaluacion").value(1))
-                .andExpect(jsonPath("$.nombre").value("ACTIVO"));
+                .andExpect(jsonPath("$.nombreEvaluacion").value("Certamen 1"));
 
         verify(cursoEvaluacionService, times(1)).guardar(any(CursoEvaluacionRequestDTO.class));
     }
 }
+
 

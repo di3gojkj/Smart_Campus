@@ -2,64 +2,31 @@ package com.cur_eva.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Schema(
-    name = "CursoEvaluacionRequest", 
-    description = "Modelo de datos requerido para registrar o actualizar una evaluación de curso"
-)
+@Schema(description = "Modelo de datos requerido para crear o registrar una nueva evaluación de curso")
 public class CursoEvaluacionRequestDTO {
 
-    @NotBlank(message = "El nombre del estado es obligatorio")
-    @Size(max = 10, message = "El nombre del estado no puede superar los 10 caracteres")
-    @Schema(
-        description = "Nombre o estado actual de la evaluación", 
-        example = "ACTIVO", 
-        maxLength = 10, 
-        requiredMode = Schema.RequiredMode.REQUIRED
-    )
+    @NotBlank(message = "El nombre es obligatorio")
+    @Schema(description = "Nombre o estado asignado", example = "ACTIVO", requiredMode = Schema.RequiredMode.REQUIRED)
     private String nombre;
 
-    @NotBlank(message = "la fecha de creacion es obligatorio")
-    @Size(max = 10, message = "la fecha no puede superar los 10 caracteres")
-    @Schema(
-        description = "Fecha en la que se creó el registro del curso (formato sugerido: AAAA-MM-DD)", 
-        example = "2026-06-15", 
-        maxLength = 10, 
-        requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String fCreacion;
+    @NotNull(message = "El ID del curso es obligatorio")
+    @Schema(description = "ID del curso asociado de forma externa", example = "12", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Long idCurso; // 🛠️ AGREGADO PARA EL MÉTODO GUARDAR
 
-    @NotBlank(message = "la fecha de cierre es obligatorio")
-    @Size(max = 10, message = "la fecha no puede superar los 10 caracteres")
-    @Schema(
-        description = "Fecha límite programada para el cierre de la evaluación", 
-        example = "2026-07-20", 
-        maxLength = 10, 
-        requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    private String fCierre;
+    @NotNull(message = "El ID de la evaluación es obligatorio")
+    @Schema(description = "ID de la evaluación procedente de Ms_Evaluacion", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Long idEvaluacion; // 🛠️ AGREGADO PARA EL MÉTODO GUARDAR
 
-    @NotBlank(message = "la fecha de apertura es obligatorio")
-    @Size(max = 10, message = "la fecha no puede superar los 10 caracteres")
-    @Schema(
-        description = "Fecha planificada para la apertura de la evaluación a los estudiantes", 
-        example = "2026-06-20", 
-        maxLength = 10, 
-        requiredMode = Schema.RequiredMode.REQUIRED
-    )
+    @NotBlank(message = "La fecha de apertura es obligatoria")
+    @Schema(description = "Fecha programada para la apertura pública", example = "2026-06-20", requiredMode = Schema.RequiredMode.REQUIRED)
     private String fApertura;
 
-    // ADICIÓN INTEGRADA: Campo indispensable para vincular síncronamente con Ms_Evaluacion
-    @Schema(
-        description = "Identificador opcional de la evaluación en el microservicio remoto", 
-        example = "5"
-    )
-    private Long idEvaluacion;
+    @NotBlank(message = "La fecha de cierre es obligatoria")
+    @Schema(description = "Fecha límite registrada para el cierre", example = "2026-07-20", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String fCierre;
 }
+

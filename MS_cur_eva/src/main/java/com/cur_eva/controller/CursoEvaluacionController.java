@@ -15,7 +15,6 @@ import com.cur_eva.dto.CursoEvaluacionRequestDTO;
 import com.cur_eva.dto.CursoEvaluacionResponseDTO;
 import com.cur_eva.service.CursoEvaluacionService;
 
-// ANOTACIONES DE SWAGGER
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

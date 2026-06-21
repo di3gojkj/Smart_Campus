@@ -1,47 +1,52 @@
 package com.cur_eva.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Schema(
-    name = "CursoEvaluacionResponse", 
-    description = "Modelo de datos que representa la respuesta del servidor con la información de la evaluación"
-)
+@Schema(description = "DTO que expone la relación Curso-Evaluación con metadatos enriquecidos externamente")
 public class CursoEvaluacionResponseDTO {
 
-    @Schema(
-        description = "Identificador único autogenerado de la evaluación en la base de datos", 
-        example = "1"
-    )
+    @Schema(description = "ID de la relación local Curso-Evaluación", example = "1")
     private Long idCursoEvaluacion;
 
-    @Schema(
-        description = "Nombre o estado actual de la evaluación", 
-        example = "ACTIVO"
-    )
+    @Schema(description = "ID del curso asociado", example = "12")
+    private Long idCurso;
+
+    @Schema(description = "ID de la evaluación externa", example = "1")
+    private Long idEvaluacion;
+
+  
+    @Schema(description = "Nombre asignado a la evaluación del curso", example = "Evaluación Parcial Java")
     private String nombre;
 
-    @Schema(
-        description = "Fecha en la que se creó el registro", 
-        example = "2026-06-15"
-    )
+    @Schema(description = "Fecha de creación del registro institucional", example = "2026-06-15")
     private String fCreacion;
 
-    @Schema(
-        description = "Fecha límite en la que se cerró o cerrará la evaluación", 
-        example = "2026-07-20"
-    )
+
+    @Schema(description = "Fecha de apertura de la evaluación", example = "14/06/26")
+    private String fApertura;
+
+    @Schema(description = "Fecha límite de cierre de la evaluación", example = "20/06/26")
     private String fCierre;
 
-    @Schema(
-        description = "Fecha en la que se abrió o abrirá la evaluación", 
-        example = "2026-06-20"
-    )
-    private String fApertura;
+   
+    @Schema(description = "Nombre de la evaluación (Obtenido de Ms_Evaluacion)", example = "Certamen 1")
+    private String nombreEvaluacion;
+
+    @Schema(description = "Porcentaje de ponderación de la evaluación", example = "30.0")
+    private Double porcentajeEvaluacion;
+
+    @Schema(description = "ID del tipo de evaluación", example = "2")
+    private Long idTipoEval;
+
+    @Schema(description = "Nombre del tipo de evaluación (Obtenido de Ms_Evaluacion)", example = "Certamen")
+    private String nombreTipoEvaluacion;
+
+    @Schema(description = "Fecha de creación del curso (Obtenida de curso_seccion)", example = "20/06/26")
+    private String fechaCreacionCurso;
+
+    @Schema(description = "Nombre oficial del curso (Obtenido de curso_seccion)", example = "Programación Orientada a Objetos")
+    private String nombreCurso;
 }
+

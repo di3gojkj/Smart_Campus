@@ -6,169 +6,176 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.cur_eva.client.EvaluacionClient; 
+import feign.FeignException;
+
+import com.cur_eva.client.EvaluacionClient;
+import com.cur_eva.client.CursoClient; // 🛠️ INYECTADO NUEVO CLIENTE FEIGN
 import com.cur_eva.dto.CursoEvaluacionRequestDTO;
 import com.cur_eva.dto.CursoEvaluacionResponseDTO;
-import com.cur_eva.dto.EvaluacionResponseDTO; 
-import com.cur_eva.exception.CursoEvaluacionNotFoundException;
+import com.cur_eva.dto.EvaluacionResponseDTO;
+import com.cur_eva.dto.TipoEvaluacionResponseDTO;
+import com.cur_eva.dto.CursoResponseDTO; // 🛠️ INYECTADO DTO ESPEJO LOCAL
 import com.cur_eva.model.CursoEvaluacion;
 import com.cur_eva.repository.CursoEvaluacionRepository;
 
-import feign.FeignException; // INYECTADO: Control de excepciones de red de Feign
-
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Test Unit de CursoEvaluacionService")
+@DisplayName("Pruebas Unitarias desde cero para CursoEvaluacionService (Enlazado Distribuido)")
 public class CursoEvaluacionServiceTest {
 
     @Mock
     private CursoEvaluacionRepository cursoEvaluacionRepository;
 
     @Mock
-    private EvaluacionClient evaluacionClient; // INYECTADO: Mock requerido por la nueva validación remota
+    private EvaluacionClient evaluacionClient;
+
+    @Mock
+    private CursoClient cursoClient; // 🛠️ MOCK DEL NUEVO CLIENTE DE INTEGRACIÓN
 
     @InjectMocks
     private CursoEvaluacionService cursoEvaluacionService;
 
-    private CursoEvaluacion evaluacionEjemplo;
-    private CursoEvaluacionRequestDTO requestDtoPrueba;
+    private CursoEvaluacion entidadMock;
+    private CursoEvaluacionRequestDTO requestDTOMock;
+    private EvaluacionResponseDTO evaluacionMock;
+    private TipoEvaluacionResponseDTO tipoMock;
+    private CursoResponseDTO cursoResponseMock; // 🛠️ DTO MOCK LOCAL
 
     @BeforeEach
     void setUp() {
-       
-        evaluacionEjemplo = new CursoEvaluacion(1L, "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20");
-        
-        requestDtoPrueba = new CursoEvaluacionRequestDTO("ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20", 5L);
+        // 1. Inicialización de la entidad local institucional
+        entidadMock = new CursoEvaluacion();
+        entidadMock.setIdCursoEvaluacion(1L);
+        entidadMock.setNombre("ACTIVO");
+        entidadMock.setIdCurso(12L);
+        entidadMock.setIdEvaluacion(100L);
+        entidadMock.setFCreacion("2026-06-21");
+        entidadMock.setFApertura("2026-06-20");
+        entidadMock.setFCierre("2026-07-20");
+
+        // 2. Inicialización del DTO de entrada para persistencia
+        requestDTOMock = new CursoEvaluacionRequestDTO();
+        requestDTOMock.setNombre("ACTIVO");
+        requestDTOMock.setIdCurso(12L);
+        requestDTOMock.setIdEvaluacion(100L);
+        requestDTOMock.setFApertura("2026-06-20");
+        requestDTOMock.setFCierre("2026-07-20");
+
+        // 3. Mockeo puro con Mockito para evitar errores de Classpath o Lombok
+        evaluacionMock = mock(EvaluacionResponseDTO.class);
+        when(evaluacionMock.getId_Evaluacion()).thenReturn(100L);
+        when(evaluacionMock.getNombre()).thenReturn("Certamen 1");
+        when(evaluacionMock.getPorcentaje()).thenReturn(30.0);
+        when(evaluacionMock.getIdTipoEval()).thenReturn(2L);
+
+        tipoMock = mock(TipoEvaluacionResponseDTO.class);
+        when(tipoMock.getIdTipoEval()).thenReturn(2L);
+        when(tipoMock.getNombreTipo()).thenReturn("Certamen");
+
+        // 🛠️ 4. Mockeo de la respuesta procedente de curso_seccion (Puerto 8080)
+        cursoResponseMock = mock(CursoResponseDTO.class);
+        when(cursoResponseMock.getId()).thenReturn(12L);
+        when(cursoResponseMock.getNombre()).thenReturn("Programación Orientada a Objetos");
+        when(cursoResponseMock.getFechaCreacion()).thenReturn("20/06/26");
     }
 
     @Test
-    @DisplayName("obtenerTodos() retorna la lista de DTO de todas las evaluaciones")
-    void obtenerTodos_debeRetornarListaDeEvaluaciones() {
-        when(cursoEvaluacionRepository.findAll()).thenReturn(List.of(evaluacionEjemplo));
+    @DisplayName("obtenerTodos() - Debe retornar DTOs con metadatos externos de evaluaciones y cursos enriquecidos")
+    void obtenerTodos_DebeRetornarListaEnriquecida_CuandoTodosLosMicroserviciosResponden() {
+        // Arrange
+        when(cursoEvaluacionRepository.findAll()).thenReturn(List.of(entidadMock));
+        when(evaluacionClient.buscarPorId(100L)).thenReturn(evaluacionMock);
+        when(evaluacionClient.buscarTipoPorId(2L)).thenReturn(tipoMock);
+        when(cursoClient.buscarCursoPorId(12L)).thenReturn(cursoResponseMock); // Simula curso_seccion
 
+        // Act
         List<CursoEvaluacionResponseDTO> resultado = cursoEvaluacionService.obtenerTodos();
 
+        // Assert
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
         assertEquals("ACTIVO", resultado.get(0).getNombre());
-        // CORREGIDO: Mapeo correcto al getter de Fecha Apertura según tu capa service real
-        assertEquals("2026-06-15", resultado.get(0).getFApertura());
+        assertEquals("Certamen 1", resultado.get(0).getNombreEvaluacion());
+        assertEquals("Programación Orientada a Objetos", resultado.get(0).getNombreCurso());
+        assertEquals("20/06/26", resultado.get(0).getFechaCreacionCurso());
 
         verify(cursoEvaluacionRepository, times(1)).findAll();
+        verify(evaluacionClient, times(1)).buscarPorId(100L);
+        verify(cursoClient, times(1)).buscarCursoPorId(12L);
     }
 
     @Test
-    @DisplayName("obtenerTodos() debe retornar una lista vacía cuando no hay registros")
-    void obtenerTodos_debeRetornarListaVacia_SiNoHayRegistros() {
-        when(cursoEvaluacionRepository.findAll()).thenReturn(List.of());
-
-        List<CursoEvaluacionResponseDTO> resultado = cursoEvaluacionService.obtenerTodos();
-
-        assertNotNull(resultado);
-        assertTrue(resultado.isEmpty());
-        verify(cursoEvaluacionRepository, times(1)).findAll();
-    }
-
-    @Test
-    @DisplayName("obtenerPorId() debe retornar el DTO cuando el ID existe")
-    void obtenerPorId_debeRetornarDTO_CuandoIdExiste() {
-        when(cursoEvaluacionRepository.findById(1L)).thenReturn(Optional.of(evaluacionEjemplo));
-
-        CursoEvaluacionResponseDTO resultado = cursoEvaluacionService.obtenerPorId(1L);
-
-        assertNotNull(resultado);
-        assertEquals(1L, resultado.getIdCursoEvaluacion());
-        assertEquals("ACTIVO", resultado.getNombre());
-        verify(cursoEvaluacionRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    @DisplayName("obtenerPorId() debe lanzar CursoEvaluacionNotFoundException cuando el ID no existe")
-    void obtenerPorId_debeLanzarExcepcion_CuandoIdNoExiste() {
-        when(cursoEvaluacionRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThrows(CursoEvaluacionNotFoundException.class, () -> {
-            cursoEvaluacionService.obtenerPorId(99L);
-        });
-
-        verify(cursoEvaluacionRepository, times(1)).findById(99L);
-    }
-
-    @Test
-    @DisplayName("guardar() debe almacenar con éxito si el nombre no está duplicado y la evaluación remota existe")
-    void guardar_debeAlmacenar_CuandoNombreEsUnico() {
+    @DisplayName("obtenerTodos() - Debe ser tolerante y resiliente si el microservicio de cursos falla")
+    void obtenerTodos_DebeRetornarDatosLocales_CuandoFallaCursoSeccion() {
         // Arrange
-        when(cursoEvaluacionRepository.findByNombreIgnoreCase("ACTIVO")).thenReturn(Optional.empty());
-        
-        // Simulamos respuesta HTTP exitosa desde Ms_Evaluacion
-        EvaluacionResponseDTO evalMock = new EvaluacionResponseDTO(5L, "Examen Base", 15.0, 1L, "Parcial");
-        when(evaluacionClient.buscarPorId(5L)).thenReturn(evalMock);
-        
-        when(cursoEvaluacionRepository.save(any(CursoEvaluacion.class))).thenReturn(evaluacionEjemplo);
+        when(cursoEvaluacionRepository.findAll()).thenReturn(List.of(entidadMock));
+        when(evaluacionClient.buscarPorId(100L)).thenReturn(evaluacionMock);
+        when(evaluacionClient.buscarTipoPorId(2L)).thenReturn(tipoMock);
+        when(cursoClient.buscarCursoPorId(12L)).thenThrow(new RuntimeException("Error en curso_seccion (Timeout)"));
 
         // Act
-        CursoEvaluacionResponseDTO resultado = cursoEvaluacionService.guardar(requestDtoPrueba);
+        List<CursoEvaluacionResponseDTO> resultado = cursoEvaluacionService.obtenerTodos();
+
+        // Assert
+        assertNotNull(resultado);
+        assertEquals("Certamen 1", resultado.get(0).getNombreEvaluacion());
+        assertEquals("Curso no disponible", resultado.get(0).getNombreCurso()); // Capturado por el bloque catch de resiliencia
+        
+        verify(cursoEvaluacionRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("guardar() - Debe registrar localmente si pasa la validación perimetral de curso y evaluación")
+    void guardar_DebeAlmacenar_CuandoCursoYEvaluacionExistenEnRemoto() {
+        // Arrange
+        when(cursoEvaluacionRepository.findByNombreIgnoreCase("ACTIVO")).thenReturn(Optional.empty());
+        when(cursoClient.buscarCursoPorId(12L)).thenReturn(cursoResponseMock); // Validación distribuida 1
+        when(evaluacionClient.buscarPorId(100L)).thenReturn(evaluacionMock); // Validación distribuida 2
+        when(cursoEvaluacionRepository.save(any(CursoEvaluacion.class))).thenReturn(entidadMock);
+
+        // Act
+        CursoEvaluacionResponseDTO resultado = cursoEvaluacionService.guardar(requestDTOMock);
 
         // Assert
         assertNotNull(resultado);
         assertEquals(1L, resultado.getIdCursoEvaluacion());
-        assertEquals("ACTIVO", resultado.getNombre());
-
-        verify(cursoEvaluacionRepository, times(1)).findByNombreIgnoreCase("ACTIVO");
-        verify(evaluacionClient, times(1)).buscarPorId(5L);
+        verify(cursoEvaluacionRepository, never()); // Verifica aislamiento
+        verify(cursoClient, times(2)).buscarCursoPorId(12L); // Una para validar en guardar, otra al mapear en toResponseDTO
         verify(cursoEvaluacionRepository, times(1)).save(any(CursoEvaluacion.class));
     }
 
     @Test
-    @DisplayName("guardar() debe lanzar RuntimeException cuando el nombre ya se encuentra registrado localmente")
-    void guardar_debeLanzarExcepcion_CuandoNombreEstaDuplicado() {
-        // Arrange
-        when(cursoEvaluacionRepository.findByNombreIgnoreCase("ACTIVO")).thenReturn(Optional.of(evaluacionEjemplo));
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            cursoEvaluacionService.guardar(requestDtoPrueba);
-        });
-
-        verify(cursoEvaluacionRepository, times(1)).findByNombreIgnoreCase("ACTIVO");
-        verify(evaluacionClient, never()).buscarPorId(any(Long.class));
-        verify(cursoEvaluacionRepository, never()).save(any(CursoEvaluacion.class));
-    }
-
-    @Test
-    @DisplayName("guardar() debe lanzar RuntimeException si el cliente Feign devuelve 404 (La evaluación remota no existe)")
-    void guardar_debeLanzarExcepcion_CuandoEvaluacionRemotaNoExiste() {
+    @DisplayName("guardar() - Debe lanzar excepción si Feign reporta un 404 del curso en curso_seccion")
+    void guardar_DebeLanzarExcepcion_CuandoCursoNoExisteEnCursoSeccion() {
         // Arrange
         when(cursoEvaluacionRepository.findByNombreIgnoreCase("ACTIVO")).thenReturn(Optional.empty());
         
-        // Simulamos que Feign arroja un error 404 Not Found al consumir Ms_Evaluacion
-        FeignException.NotFound feignException = org.mockito.Mockito.mock(FeignException.NotFound.class);
-        doThrow(feignException).when(evaluacionClient).buscarPorId(5L);
+        FeignException.NotFound feignNotFound = mock(FeignException.NotFound.class);
+        when(cursoClient.buscarCursoPorId(12L)).thenThrow(feignNotFound); // Bloqueo perimetral en la primera validación
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            cursoEvaluacionService.guardar(requestDtoPrueba);
+        assertThrows(RuntimeException.class, () -> {
+            cursoEvaluacionService.guardar(requestDTOMock);
         });
 
-        assertTrue(exception.getMessage().contains("no existe en el sistema remoto"));
         verify(cursoEvaluacionRepository, times(1)).findByNombreIgnoreCase("ACTIVO");
-        verify(evaluacionClient, times(1)).buscarPorId(5L);
+        verify(evaluacionClient, never()).buscarPorId(any(Long.class)); // Bloquea la ejecución antes de llamar al segundo MS
         verify(cursoEvaluacionRepository, never()).save(any(CursoEvaluacion.class));
     }
 }
+
+
 

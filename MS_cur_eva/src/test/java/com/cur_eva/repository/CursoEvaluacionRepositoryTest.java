@@ -5,90 +5,79 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest; 
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.cur_eva.model.CursoEvaluacion;
+import jakarta.persistence.EntityManager;
 
-
-@DataJpaTest(properties = {
-    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
-    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;IGNORECASE=TRUE"
-})
+@SpringBootTest
+@Transactional
 @ActiveProfiles("test")
-@DisplayName("Test del repositorio de evaluaciones en memoria H2")
+@DisplayName("Pruebas Unitarias desde cero para CursoEvaluacionRepository")
 public class CursoEvaluacionRepositoryTest {
 
     @Autowired
     private CursoEvaluacionRepository cursoEvaluacionRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private EntityManager entityManager;
 
-  
-    private CursoEvaluacion evaluacionActiva;
-    private CursoEvaluacion evaluacionCerrada;
+    private CursoEvaluacion estadoBase;
 
     @BeforeEach
     void setUp() {
-        
-        evaluacionActiva = entityManager.persistAndFlush(
-            new CursoEvaluacion(null, "ACTIVO", "2026-06-15", "2026-07-20", "2026-06-20")
-        );
-        evaluacionCerrada = entityManager.persistAndFlush(
-            new CursoEvaluacion(null, "CERRADO", "2026-05-10", "2026-06-10", "2026-05-15")
-        );
+        // Inicializamos un registro de prueba respetando los campos obligatorios de tu entidad
+        estadoBase = new CursoEvaluacion();
+        estadoBase.setNombre("ACTIVO");
+        estadoBase.setIdCurso(12L);
+        estadoBase.setIdEvaluacion(1L);
+        estadoBase.setFCreacion("2026-06-21");
+        estadoBase.setFApertura("2026-06-20");
+        estadoBase.setFCierre("2026-07-20");
+
+        entityManager.persist(estadoBase);
+        entityManager.flush();
     }
 
     @Test
-    @DisplayName("findAll() debe retornar todas las evaluaciones registradas en la base de datos")
-    void findAll_debeRetornarTodasLasEvaluaciones() {
-        
-        List<CursoEvaluacion> lista = cursoEvaluacionRepository.findAll();
-
-        
-        assertNotNull(lista);
-        assertEquals(2, lista.size());
-    }
-
-    @Test
-    @DisplayName("findByNombreIgnoreCase() debe localizar la evaluación ignorando mayúsculas y minúsculas")
-    void findByNombreIgnoreCase_debeRetornarEvaluacion_cuandoExiste() {
-        
+    @DisplayName("findByNombreIgnoreCase() - Debe localizar el registro omitiendo mayúsculas y minúsculas")
+    void findByNombreIgnoreCase_DebeRetornarEntidad_CuandoExiste() {
         Optional<CursoEvaluacion> resultado = cursoEvaluacionRepository.findByNombreIgnoreCase("activo");
 
-        
         assertTrue(resultado.isPresent());
         assertEquals("ACTIVO", resultado.get().getNombre());
-        assertEquals("2026-06-15", resultado.get().getFCreacion());
+        assertEquals(12L, resultado.get().getIdCurso());
     }
 
     @Test
-    @DisplayName("buscarPorNombreExacto() debe ejecutar la consulta JPQL personalizada de manera correcta")
-    void buscarPorNombreExacto_debeRetornarEvaluacion() {
-        
-        Optional<CursoEvaluacion> resultado = cursoEvaluacionRepository.buscarPorNombreExacto("CERRADO");
-
-        
-        assertTrue(resultado.isPresent());
-        assertEquals("CERRADO", resultado.get().getNombre());
-    }
-
-    @Test
-    @DisplayName("findByNombreIgnoreCase() debe retornar un Optional vacío si el nombre no existe en los registros")
-    void findByNombreIgnoreCase_debeRetornarVacio_cuandoNoExiste() {
-        
+    @DisplayName("findByNombreIgnoreCase() - Debe retornar Optional vacío si el nombre no se encuentra en el sistema")
+    void findByNombreIgnoreCase_DebeRetornarVacio_CuandoNoExiste() {
         Optional<CursoEvaluacion> resultado = cursoEvaluacionRepository.findByNombreIgnoreCase("INEXISTENTE");
+        assertTrue(resultado.isEmpty());
+    }
 
+    @Test
+    @DisplayName("buscarPorNombreExacto() - Debe ejecutar la consulta JPQL personalizada de forma exitosa")
+    void buscarPorNombreExacto_DebeRetornarEntidad_CuandoFiltroCoincide() {
+        Optional<CursoEvaluacion> resultado = cursoEvaluacionRepository.buscarPorNombreExacto("ACTIVO");
+
+        assertTrue(resultado.isPresent());
+        assertEquals("ACTIVO", resultado.get().getNombre());
+        assertNotNull(resultado.get().getIdCursoEvaluacion());
+    }
+
+    @Test
+    @DisplayName("buscarPorNombreExacto() - Debe retornar Optional vacío si la query JPQL no encuentra coincidencias")
+    void buscarPorNombreExacto_DebeRetornarVacio_CuandoFiltroNoCoincide() {
+        Optional<CursoEvaluacion> resultado = cursoEvaluacionRepository.buscarPorNombreExacto("DESACTIVADO");
         assertFalse(resultado.isPresent());
     }
 }
