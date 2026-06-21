@@ -117,7 +117,7 @@ services:
       dockerfile: Dockerfile
     container_name: Ms_curso-seccion
     ports:
-      - "8090:8090"
+      - "8098:8098"
     depends_on:
       mysql:
         condition: service_healthy #espera que mysql este OK
