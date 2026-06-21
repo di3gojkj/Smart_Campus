@@ -36,116 +36,7 @@ services:
     restart: on-failure
     networks:
       - microservicios-net
-
-
-  #Servicio 
-  Ms_Asignatura:
-    build:
-      context: ./Ms_Asignatura
-      dockerfile: Dockerfile
-    container_name: Ms_Asignatura
-    ports:
-      - "8070:8070"
-    depends_on:
-      mysql:
-        condition: service_healthy #espera que mysql este OK
-      eureka-server:
-        condition: service_started #espera hasta que eureka este levantado
-    restart: on-failure
-    networks:
-      - microservicios-net
-
-
-  #Servicio 
-  Ms_Carrera:
-    build:
-      context: ./Ms_Carrera
-      dockerfile: Dockerfile
-    container_name: Ms_Carrera
-    ports:
-      - "8060:8060"
-    depends_on:
-      mysql:
-        condition: service_healthy #espera que mysql este OK
-      eureka-server:
-        condition: service_started #espera hasta que eureka este levantado
-    restart: on-failure
-    networks:
-      - microservicios-net
-
-
-  #Servicio 
-  MS_confi:
-    build:
-      context: ./MS_confi
-      dockerfile: Dockerfile
-    container_name: MS_confi
-    ports:
-      - "8082:8082"
-    depends_on:
-      mysql:
-        condition: service_healthy #espera que mysql este OK
-      eureka-server:
-        condition: service_started #espera hasta que eureka este levantado
-    restart: on-failure
-    networks:
-      - microservicios-net
-
-
-  #Servicio 
-  MS_cur_eva:
-    build:
-      context: ./MS_cur_eva
-      dockerfile: Dockerfile
-    container_name: MS_cur_eva
-    ports:
-      - "8099:8099"
-    depends_on:
-      mysql:
-        condition: service_healthy #espera que mysql este OK
-      eureka-server:
-        condition: service_started #espera hasta que eureka este levantado
-    restart: on-failure
-    networks:
-      - microservicios-net
-
-
-  #Servicio 
-  Ms_curso-seccion:
-    build:
-      context: ./Ms_curso-seccion
-      dockerfile: Dockerfile
-    container_name: Ms_curso-seccion
-    ports:
-      - "8098:8098"
-    depends_on:
-      mysql:
-        condition: service_healthy #espera que mysql este OK
-      eureka-server:
-        condition: service_started #espera hasta que eureka este levantado
-    restart: on-failure
-    networks:
-      - microservicios-net
-
   
-  #Servicio 
-  Ms_Evaluacion:
-    build:
-      context: ./Ms_Evaluacion
-      dockerfile: Dockerfile
-    container_name: Ms_Evaluacion
-    ports:
-      - "8090:8090"
-    depends_on:
-      mysql:
-        condition: service_healthy #espera que mysql este OK
-      eureka-server:
-        condition: service_started #espera hasta que eureka este levantado
-    restart: on-failure
-    networks:
-      - microservicios-net
-
-
   #Servicio 
   Ms_Gestion_Estado:
     build:
@@ -162,25 +53,6 @@ services:
     restart: on-failure
     networks:
       - microservicios-net
-
-
-  #Servicio 
-  Ms_Gestión_Lista:
-    build:
-      context: ./Ms_Gestión_Lista
-      dockerfile: Dockerfile
-    container_name: Ms_Gestión_Lista
-    ports:
-      - "8085:8085"
-    depends_on:
-      mysql:
-        condition: service_healthy #espera que mysql este OK
-      eureka-server:
-        condition: service_started #espera hasta que eureka este levantado
-    restart: on-failure
-    networks:
-      - microservicios-net
-
 
   #Servicio 
   MS_Gestión_Usuario:
@@ -199,6 +71,124 @@ services:
     networks:
       - microservicios-net
 
+  #Servicio 
+  MS_confi:
+    build:
+      context: ./MS_confi
+      dockerfile: Dockerfile
+    container_name: MS_confi
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy #espera que mysql este OK
+      eureka-server:
+        condition: service_started #espera hasta que eureka este levantado
+    restart: on-failure
+    networks:
+      - microservicios-net
+
+  #Servicio 
+  Ms_Asignatura:
+    build:
+      context: ./Ms_Asignatura
+      dockerfile: Dockerfile
+    container_name: Ms_Asignatura
+    ports:
+      - "8070:8070"
+    depends_on:
+      mysql:
+        condition: service_healthy #espera que mysql este OK
+      eureka-server:
+        condition: service_started #espera hasta que eureka este levantado
+    restart: on-failure
+    networks:
+      - microservicios-net
+
+  #Servicio 
+  Ms_Carrera:
+    build:
+      context: ./Ms_Carrera
+      dockerfile: Dockerfile
+    container_name: Ms_Carrera
+    ports:
+      - "8060:8060"
+    depends_on:
+      mysql:
+        condition: service_healthy #espera que mysql este OK
+      eureka-server:
+        condition: service_started #espera hasta que eureka este levantado
+    restart: on-failure
+    networks:
+      - microservicios-net
+
+  #Servicio 
+  Ms_curso-seccion:
+    build:
+      context: ./Ms_curso-seccion
+      dockerfile: Dockerfile
+    container_name: Ms_curso-seccion
+    ports:
+      - "8098:8098"
+    depends_on:
+      mysql:
+        condition: service_healthy #espera que mysql este OK
+      eureka-server:
+        condition: service_started #espera hasta que eureka este levantado
+    restart: on-failure
+    networks:
+      - microservicios-net
+  
+  #Servicio 
+  Ms_Gestión_Lista:
+    build:
+      context: ./Ms_Gestión_Lista
+      dockerfile: Dockerfile
+    container_name: Ms_Gestión_Lista
+    ports:
+      - "8085:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy #espera que mysql este OK
+      eureka-server:
+        condition: service_started #espera hasta que eureka este levantado
+    restart: on-failure
+    networks:
+      - microservicios-net
+
+  #Servicio 
+  Ms_Evaluacion:
+    build:
+      context: ./Ms_Evaluacion
+      dockerfile: Dockerfile
+    container_name: Ms_Evaluacion
+    ports:
+      - "8090:8090"
+    depends_on:
+      mysql:
+        condition: service_healthy #espera que mysql este OK
+      eureka-server:
+        condition: service_started #espera hasta que eureka este levantado
+    restart: on-failure
+    networks:
+      - microservicios-net
+
+  #Servicio 
+  MS_cur_eva:
+    build:
+      context: ./MS_cur_eva
+      dockerfile: Dockerfile
+    container_name: MS_cur_eva
+    ports:
+      - "8099:8099"
+    depends_on:
+      mysql:
+        condition: service_healthy #espera que mysql este OK
+      eureka-server:
+        condition: service_started #espera hasta que eureka este levantado
+    restart: on-failure
+    networks:
+      - microservicios-net
 
   #Servicio 
   Ms_tipo-asistencia:
@@ -217,10 +207,6 @@ services:
     networks:
       - microservicios-net
 
-
-
-
-
   #Servicio 5: apigateway
   api-gateway:
     build:
@@ -233,24 +219,24 @@ services:
       eureka-server:
         condition: service_started #espera hasta que eureka este levantado
 
+      Ms_Gestion_Estado:
+        condition: service_started #espera hasta que eureka este levantado
+      MS_Gestión_Usuario:
+        condition: service_started #espera hasta que eureka este levantado
+      MS_confi:
+        condition: service_started #espera hasta que eureka este levantado
       Ms_Asignatura:
         condition: service_started #espera hasta que eureka este levantado
       Ms_Carrera:
         condition: service_started #espera hasta que eureka este levantado
-      MS_confi:
-        condition: service_started #espera hasta que eureka este levantado
-      MS_cur_eva:
-        condition: service_started #espera hasta que eureka este levantado
       Ms_curso-seccion:
-        condition: service_started #espera hasta que eureka este levantado
-      Ms_Evaluacion:
-        condition: service_started #espera hasta que eureka este levantado
-      Ms_Gestion_Estado:
         condition: service_started #espera hasta que eureka este levantado
       Ms_Gestión_Lista:
         condition: service_started #espera hasta que eureka este levantado
-      MS_Gestión_Usuario:
+      Ms_Evaluacion:
         condition: service_started #espera hasta que eureka este levantado
+      MS_cur_eva:
+        condition: service_started #espera hasta que eureka este levantado 
       Ms_tipo-asistencia:
         condition: service_started #espera hasta que eureka este levantado
 
