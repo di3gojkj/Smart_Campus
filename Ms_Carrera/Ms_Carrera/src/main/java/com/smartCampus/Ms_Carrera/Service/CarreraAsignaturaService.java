@@ -42,9 +42,10 @@ public class CarreraAsignaturaService {
         List<CarreraAsignatura> lista = repository.findByCarrera_IdCarrera(idCarrera);
 
         if (lista.isEmpty()) {
-            throw new RuntimeException("No se encontró la carrera con el ID indicado: " + idCarrera);
+            
+            return List.of();
         }
-        return repository.findByCarrera_IdCarrera(idCarrera).stream()
+        return lista.stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
