@@ -122,6 +122,94 @@ public class CarreraAsignaturaServiceTest {
     }
 
     @Test
+    @DisplayName("actualizar() modifica la relacion exitosamente")
+    void actualizar_debeModificarYRetornarDTO() {
+        when(repository.findById(1L)).thenReturn(Optional.of(relacion));
+        when(repository.save(any(CarreraAsignatura.class))).thenReturn(relacion);
+        when(asignaturaClient.obtenerAsignaturaPorId(3L)).thenReturn(null);
+
+        CarreraAsignaturaResponseDTO resultado = carreraAsignaturaService.actualizar(1L, requestDTO);
+
+        assertNotNull(resultado);
+        verify(repository, times(1)).save(any(CarreraAsignatura.class));
+    }
+
+    @Test
+    @DisplayName("actualizar() lanza CarreraAsignaturaNotFoundException si el ID no existe")
+    void actualizar_debeLanzarNotFound_SiIdNoExiste() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(CarreraAsignaturaNotFoundException.class, () -> carreraAsignaturaService.actualizar(99L, requestDTO));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("actualizar() lanza CarreraAsignaturaConflictException si hay cambio de identidad y ya existe el duplicado")
+    void actualizar_debeLanzarConflict_SiNuevosDatosYaExisten() {
+        when(repository.findById(1L)).thenReturn(Optional.of(relacion));
+        
+        com.smartCampus.Ms_Carrera.DTO.CarreraAsignaturaRequestDTO dtoConCambio = 
+            new com.smartCampus.Ms_Carrera.DTO.CarreraAsignaturaRequestDTO(2L, 4L, 2L);
+            
+        when(repository.existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre(2L, 4L, 2L)).thenReturn(true);
+
+        assertThrows(CarreraAsignaturaConflictException.class, () -> 
+            carreraAsignaturaService.actualizar(1L, dtoConCambio)
+        );
+    }
+
+    
+    @Test
+    @DisplayName("actualizar() cambia la carrera exitosamente si los IDs son distintos")
+    void actualizar_debeCambiarCarrera_CuandoIdCarreraEsDiferente() {
+        when(repository.findById(1L)).thenReturn(Optional.of(relacion));
+        
+        
+        CarreraAsignaturaRequestDTO dtoNuevaCarrera = new CarreraAsignaturaRequestDTO(2L, 3L, 1L);
+        Carrera nuevaCarreraObjeto = new Carrera(2L, "Ingeniería Civil", "CIV-002", 1L);
+        
+        when(repository.existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre(2L, 3L, 1L)).thenReturn(false);
+        when(carreraRepository.findById(2L)).thenReturn(Optional.of(nuevaCarreraObjeto));
+        when(repository.save(any(CarreraAsignatura.class))).thenReturn(relacion);
+
+        CarreraAsignaturaResponseDTO resultado = carreraAsignaturaService.actualizar(1L, dtoNuevaCarrera);
+
+        assertNotNull(resultado);
+        verify(carreraRepository, times(1)).findById(2L);
+        verify(repository, times(1)).save(any(CarreraAsignatura.class));
+    }
+
+    
+    @Test
+    @DisplayName("actualizar() lanza CarreraNotFoundException si la nueva carrera no existe")
+    void actualizar_debeLanzarCarreraNotFound_CuandoNuevaCarreraNoExiste() {
+        when(repository.findById(1L)).thenReturn(Optional.of(relacion));
+        
+        CarreraAsignaturaRequestDTO dtoNuevaCarrera = new CarreraAsignaturaRequestDTO(2L, 3L, 1L);
+        
+        when(repository.existsByCarrera_IdCarreraAndIdAsignaturaAndIdSemestre(2L, 3L, 1L)).thenReturn(false);
+        when(carreraRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(CarreraNotFoundException.class, () -> 
+            carreraAsignaturaService.actualizar(1L, dtoNuevaCarrera)
+        );
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("toResponseDTO lanza catch cuando falla el Feign Client")
+    void toResponseDTO_debeManejarExcepcionDeFeingClient() {
+        when(repository.findByCarrera_IdCarrera(1L)).thenReturn(List.of(relacion));
+        
+        when(asignaturaClient.obtenerAsignaturaPorId(3L)).thenThrow(new RuntimeException("Error de conexion"));
+
+        List<CarreraAsignaturaResponseDTO> resultado = carreraAsignaturaService.listarTodas(1L);
+
+        assertNotNull(resultado);
+        assertEquals("Nombre no disponible", resultado.get(0).getNombreAsignatura());
+    }
+
+    @Test
     @DisplayName("eliminar() borra la relacion si el ID existe")
     void eliminar_cuandoExiste_debeEjecutarElBorrado() {
         when(repository.existsById(1L)).thenReturn(true);
