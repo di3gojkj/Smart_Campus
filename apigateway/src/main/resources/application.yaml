@@ -2,6 +2,10 @@ server:
   port: 8021
 
 spring:
+  web:
+    error:
+      include-message: always
+      include-stacktrace: always
   application:
     name: api-gateway
   cloud:
@@ -10,62 +14,56 @@ spring:
         webflux:
           routes:
 
-            - id: ruta-Ms_Asignatura
-              uri: lb://Ms_Asignatura
+            - id: ruta-ms-asignatura
+              uri: lb://ms-asignatura
               predicates:
-                - Path=/api/asignaturas,/api/asignaturas/**
-                - Path=/api/semestres,/api/semestres/**
+                - Path=/api/asignaturas/**, /api/semestres/**
 
-            - id: ruta-Ms_Carrera
-              uri: lb://Ms_Carrera
+            - id: ruta-ms-carrera
+              uri: lb://ms-carrera
               predicates:
-                - Path=/api/carrera-asignaturas,/api/carrera-asignaturas/**
-                - Path=/api/carreras,/api/carreras/**
+                - Path=/api/carrera-asignaturas/**, /api/carreras/**
 
-            - id: ruta-MS_confi
-              uri: lb://MS_confi
+            - id: ruta-ms-confi
+              uri: lb://ms-confi
               predicates:
-                - Path=/auth,/auth/**
+                - Path=/auth/**
               
-            - id: ruta-MS_cur_eva
-              uri: lb://MS_cur_eva
+            - id: ruta-ms-cur-eva
+              uri: lb://ms-cur-eva
               predicates:
-                - Path=/api/cur-eva,/api/cur-eva/**
+                - Path=/api/cur-eva/**
             
-            - id: ruta-Ms_curso-seccion
-              uri: lb://Ms_curso-seccion
+            - id: ruta-ms-curso-seccion
+              uri: lb://ms-curso-seccion
               predicates:
-                - Path=/api/cursos,/api/cursos/**
-                - Path=/api/seccion,/api/seccion/**
+                - Path=/api/cursos/**, /api/seccion/**
 
-            - id: ruta-Ms_Evaluacion
-              uri: lb://Ms_Evaluacion
+            - id: ruta-ms-evaluacion
+              uri: lb://ms-evaluacion
               predicates:
-                - Path=/api/evaluacion,/api/evaluacion/**
-                - Path=/api/tipo-evaluacion,/api/tipo-evaluacion/**
+                - Path=/api/evaluacion/**, /api/tipo-evaluacion/**
 
-            - id: ruta-Ms_Gestion_Estado
-              uri: lb://Ms_Gestion_Estado
+            - id: ruta-ms-gestion-estado
+              uri: lb://ms-gestion-estado
               predicates:
-                - Path=/api/estados,/api/estados/**
+                - Path=/api/estados/**
             
-            - id: ruta-Ms_Gestion_Lista
-              uri: lb://Ms_Gestion_Lista
+            - id: ruta-ms-gestion-lista
+              uri: lb://ms-gestion-lista
               predicates:
-                - Path=/api/calificaciones,/api/calificaciones/**
-                - Path=/api/listas,/api/listas/**
+                - Path=/api/calificaciones/**, /api/listas/**
 
-            - id: ruta-MS_Gestion_Usuario
-              uri: lb://MS_Gestion_Usuario
+            - id: ruta-ms-gestion-usuario
+              uri: lb://ms-gestion-usuario
               predicates:
-                - Path=/api/usuarios,/api/usuarios/**
-                - Path=/api/usuarios,/api/usuarios/**
+                - Path=/api/usuarios/**
 
-            - id: ruta-Ms_tipo-asistencia
-              uri: lb://Ms_tipo-asistencia
+            - id: ruta-ms-tipo-asistencia
+              uri: lb://ms-tipo-asistencia
               predicates:
-                - Path=/api/asistencia,/api/asistencia/**
-                - Path=/api/tipo,/api/tipo/**
+                - Path=/api/asistencia/**, /api/tipo/**
+
 eureka:
   client: 
     register-with-eureka: true
@@ -80,4 +78,3 @@ eureka:
 logging:
   level:
     '[org.springframework.cloud.gateway]': DEBUG
-            
