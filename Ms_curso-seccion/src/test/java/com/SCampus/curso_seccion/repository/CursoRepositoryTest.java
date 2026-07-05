@@ -26,7 +26,7 @@ public class CursoRepositoryTest {
     @Test
     @DisplayName("findAll() - Debe retornar todos los cursos guardados")
     void findAll_DebeRetornarListaDeCursos() {
-        Curso curso = new Curso(1L, "14/06/26");
+        Curso curso = new Curso(1L, "Programación Orientada a Objetos", "14/06/26");
         when(cursoRepository.findAll()).thenReturn(List.of(curso));
 
         List<Curso> resultado = cursoRepository.findAll();
@@ -38,7 +38,7 @@ public class CursoRepositoryTest {
     @Test
     @DisplayName("findByFechaCreacion() - Debe retornar el curso si la fecha coincide")
     void findByFechaCreacion_DebeRetornarCurso_CuandoExiste() {
-        Curso curso = new Curso(1L, "25/12/26");
+        Curso curso = new Curso(1L, "Programación Orientada a Objetos", "25/12/26");
         when(cursoRepository.findByFechaCreacion("25/12/26")).thenReturn(Optional.of(curso));
 
         Optional<Curso> resultado = cursoRepository.findByFechaCreacion("25/12/26");
@@ -56,3 +56,4 @@ public class CursoRepositoryTest {
         assertTrue(resultado.isEmpty());
     }
 }
+

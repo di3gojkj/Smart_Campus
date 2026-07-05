@@ -27,7 +27,7 @@ public class SeccionRepositoryTest {
     @Test
     @DisplayName("findByIdCurso() - Debe retornar secciones asociadas al ID numérico del curso")
     void findByIdCurso_DebeRetornarListaDeSecciones() {
-        Curso curso = new Curso(1L, "14/06/26");
+        Curso curso = new Curso(1L, "Programación Orientada a Objetos", "14/06/26");
         
         Seccion seccion = new Seccion();
         seccion.setId(101L);
@@ -46,7 +46,7 @@ public class SeccionRepositoryTest {
     @Test
     @DisplayName("findByNombreIgnoreCase() - Debe localizar la sección omitiendo mayúsculas")
     void findByNombreIgnoreCase_DebeRetornarSeccion_CuandoExiste() {
-        Curso curso = new Curso(1L, "14/06/26");
+        Curso curso = new Curso(1L, "Programación Orientada a Objetos", "14/06/26");
 
         Seccion seccion = new Seccion();
         seccion.setId(101L);

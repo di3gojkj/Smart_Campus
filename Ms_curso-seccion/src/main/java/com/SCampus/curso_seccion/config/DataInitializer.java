@@ -29,8 +29,8 @@ public class DataInitializer implements CommandLineRunner {
         if (cursoRepository.count() == 0) {
             log.info("[DataInitializer]: Estructura académica no encontrada. Insertando datos iniciales...");
 
-            Curso curso1 = cursoRepository.save(new Curso(null, "14/06/26"));
-            Curso curso2 = cursoRepository.save(new Curso(null, "20/06/26"));
+            Curso curso1 = cursoRepository.save(new Curso(null, "Programación Orientada a Objetos", "14/06/26"));
+            Curso curso2 = cursoRepository.save(new Curso(null, "Estructuras de Datos", "20/06/26"));
 
             Seccion seccion1 = new Seccion();
             seccion1.setNombre("Sección Alpha");
