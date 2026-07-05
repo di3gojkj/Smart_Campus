@@ -1,7 +1,6 @@
 package MS.tipo_asistencia.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,9 +9,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -26,8 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import MS.tipo_asistencia.model.Tipo;
-import MS.tipo_asistencia.repository.TipoRepository; // O TipoService si tuvieras capa de servicio para Tipo
+import MS.tipo_asistencia.dto.TipoRequestDTO;
+import MS.tipo_asistencia.dto.TipoResponseDTO;
+import MS.tipo_asistencia.service.TipoService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Pruebas Unitarias desde cero para TipoController")
@@ -35,32 +37,30 @@ public class TipoControllerTest {
 
     private MockMvc mockMvc;
 
-    // Nota institucional: Mockeamos el repositorio/servicio inyectado en tu TipoController real
     @Mock
-    private TipoRepository tipoRepository;
+    private TipoService tipoService;
 
     @InjectMocks
     private TipoController tipoController;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private Tipo tipoMock;
+    private TipoResponseDTO tipoResponseMock;
 
     @BeforeEach
     void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(tipoController).build();
 
-        // Inicializamos el objeto paramétrico de catálogo base
-        tipoMock = new Tipo(1L, "JUSTIFICADO");
+        tipoResponseMock = new TipoResponseDTO();
+        tipoResponseMock.setIdTipo(1L);
+        tipoResponseMock.setNombre("JUSTIFICADO");
     }
 
     @Test
-    @DisplayName("GET /api/tipos - Debe retornar status 200 y el listado de catálogo completo")
+    @DisplayName("GET /api/tipo - Debe retornar status 200 y el listado de catálogo completo")
     void obtenerTodos_DebeRetornarStatus200YListaDeTipos() throws Exception {
-        // Arrange
-        when(tipoRepository.findAll()).thenReturn(List.of(tipoMock));
+        when(tipoService.obtenerTodas()).thenReturn(List.of(tipoResponseMock));
 
-        // Act & Assert
-        mockMvc.perform(get("/api/tipos")
+        mockMvc.perform(get("/api/tipo")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -68,52 +68,47 @@ public class TipoControllerTest {
                 .andExpect(jsonPath("$[0].idTipo").value(1))
                 .andExpect(jsonPath("$[0].nombre").value("JUSTIFICADO"));
 
-        verify(tipoRepository, times(1)).findAll();
+        verify(tipoService, times(1)).obtenerTodas();
     }
 
     @Test
-    @DisplayName("GET /api/tipos/{id} - Debe retornar status 200 si la clasificación existe en el catálogo")
+    @DisplayName("GET /api/tipo/{id} - Debe retornar status 200 si la clasificación existe en el catálogo")
     void obtenerPorId_DebeRetornarStatus200_CuandoIdExiste() throws Exception {
-        // Arrange
-        when(tipoRepository.findById(1L)).thenReturn(Optional.of(tipoMock));
+        when(tipoService.obtenerPorId(1L)).thenReturn(tipoResponseMock);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/tipos/1")
+        mockMvc.perform(get("/api/tipo/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idTipo").value(1))
                 .andExpect(jsonPath("$.nombre").value("JUSTIFICADO"));
 
-        verify(tipoRepository, times(1)).findById(1L);
+        verify(tipoService, times(1)).obtenerPorId(1L);
     }
 
     @Test
-    @DisplayName("GET /api/tipos/{id} - Debe retornar status 404 si la clasificación no existe")
+    @DisplayName("GET /api/tipo/{id} - Debe retornar status 404 si la clasificación no existe")
     void obtenerPorId_DebeRetornarStatus404_CuandoIdNoExiste() throws Exception {
-        // Arrange
-        when(tipoRepository.findById(999L)).thenReturn(Optional.empty());
+        when(tipoService.obtenerPorId(999L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        // Act & Assert
-        mockMvc.perform(get("/api/tipos/999")
+        mockMvc.perform(get("/api/tipo/999")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(tipoRepository, times(1)).findById(999L);
+        verify(tipoService, times(1)).obtenerPorId(999L);
     }
 
     @Test
-    @DisplayName("POST /api/tipos - Debe retornar status 201 al registrar un nuevo tipo válido")
+    @DisplayName("POST /api/tipo - Debe retornar status 201 al registrar un nuevo tipo válido")
     void crear_DebeRetornarStatus201YTipoCreado() throws Exception {
-        // Arrange
-        Tipo inputDto = new Tipo();
+        TipoRequestDTO inputDto = new TipoRequestDTO();
         inputDto.setNombre("JUSTIFICADO");
+        inputDto.setTipoId(1L);
 
-        when(tipoRepository.save(any(Tipo.class))).thenReturn(tipoMock);
+        when(tipoService.crear(any(TipoRequestDTO.class))).thenReturn(tipoResponseMock);
 
-        // Act & Assert
-        mockMvc.perform(post("/api/tipos")
+        mockMvc.perform(post("/api/tipo")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(inputDto)))
                 .andDo(print())
@@ -121,6 +116,8 @@ public class TipoControllerTest {
                 .andExpect(jsonPath("$.idTipo").value(1))
                 .andExpect(jsonPath("$.nombre").value("JUSTIFICADO"));
 
-        verify(tipoRepository, times(1)).save(any(Tipo.class));
+        verify(tipoService, times(1)).crear(any(TipoRequestDTO.class));
     }
+
+
 }

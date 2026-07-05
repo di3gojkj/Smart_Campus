@@ -53,16 +53,13 @@ public class AsistenciaControllerTest {
     void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(asistenciaController).build();
 
-        // 1. Instanciamos el catálogo paramétrico interno
         Tipo tipo = new Tipo(1L, "PRESENTE");
 
-        // 2. Instanciamos el objeto de metadata remota de gestion_lista
         ListaResponseDTO datosInscripcion = new ListaResponseDTO();
         datosInscripcion.setIdLista(45L);
         datosInscripcion.setIdUser(10L);
         datosInscripcion.setIdCurso(5L);
 
-        // 3. Inicializamos el DTO consolidado de respuesta
         responseDTOMock = new AsistenciaResponseDTO();
         responseDTOMock.setIdAsistencia(101L);
         responseDTOMock.setFecha("2026-06-21");
@@ -70,7 +67,6 @@ public class AsistenciaControllerTest {
         responseDTOMock.setTipo(tipo);
         responseDTOMock.setDatosInscripcion(datosInscripcion);
 
-        // 4. Inicializamos el DTO de payload de entrada para el POST
         requestDTOMock = new AsistenciaRequestDTO();
         requestDTOMock.setFecha("2026-06-21");
         requestDTOMock.setIdLista(45L);
@@ -80,20 +76,18 @@ public class AsistenciaControllerTest {
     @Test
     @DisplayName("GET /api/asistencias - Debe retornar status 200 y el listado enriquecido distribuido")
     void obtenerTodas_DebeRetornarStatus200YListaConsolidada() throws Exception {
-        // Arrange
         when(asistenciaService.obtenerTodas()).thenReturn(List.of(responseDTOMock));
 
-        // Act & Assert
         mockMvc.perform(get("/api/asistencias")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.idAsistencia").value(101))
-                .andExpect(jsonPath("$.fecha").value("2026-06-21"))
-                .andExpect(jsonPath("$.tipo.nombre").value("PRESENTE"))
-                .andExpect(jsonPath("$.datosInscripcion.idUser").value(10))
-                .andExpect(jsonPath("$.datosInscripcion.idCurso").value(5));
+                .andExpect(jsonPath("$[0].idAsistencia").value(101))
+                .andExpect(jsonPath("$[0].fecha").value("2026-06-21"))
+                .andExpect(jsonPath("$[0].tipo.nombre").value("PRESENTE"))
+                .andExpect(jsonPath("$[0].datosInscripcion.idUser").value(10))
+                .andExpect(jsonPath("$[0].datosInscripcion.idCurso").value(5));
 
         verify(asistenciaService, times(1)).obtenerTodas();
     }
@@ -101,10 +95,8 @@ public class AsistenciaControllerTest {
     @Test
     @DisplayName("GET /api/asistencias/{id} - Debe retornar status 200 si la asistencia existe localmente")
     void obtenerPorId_DebeRetornarStatus200_CuandoIdExiste() throws Exception {
-        // Arrange
         when(asistenciaService.obtenerPorId(101L)).thenReturn(Optional.of(responseDTOMock));
 
-        // Act & Assert
         mockMvc.perform(get("/api/asistencias/101")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -118,10 +110,8 @@ public class AsistenciaControllerTest {
     @Test
     @DisplayName("GET /api/asistencias/{id} - Debe retornar status 404 si el registro no se encuentra en MySQL")
     void obtenerPorId_DebeRetornarStatus404_CuandoIdNoExiste() throws Exception {
-        // Arrange
         when(asistenciaService.obtenerPorId(999L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         mockMvc.perform(get("/api/asistencias/999")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -133,10 +123,8 @@ public class AsistenciaControllerTest {
     @Test
     @DisplayName("POST /api/asistencias - Debe retornar status 201 al procesar de forma correcta un cuerpo válido")
     void crear_DebeRetornarStatus201YAsistenciaCreada() throws Exception {
-        // Arrange
         when(asistenciaService.guardar(any(AsistenciaRequestDTO.class))).thenReturn(responseDTOMock);
 
-        // Act & Assert
         mockMvc.perform(post("/api/asistencias")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDTOMock)))
@@ -151,10 +139,8 @@ public class AsistenciaControllerTest {
     @Test
     @DisplayName("DELETE /api/asistencias/{id} - Debe retornar status 204 tras un borrado exitoso")
     void eliminar_DebeRetornarStatus204_CuandoIdExiste() throws Exception {
-        // Arrange
         when(asistenciaService.obtenerPorId(101L)).thenReturn(Optional.of(responseDTOMock));
 
-        // Act & Assert
         mockMvc.perform(delete("/api/asistencias/101")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())

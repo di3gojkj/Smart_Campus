@@ -17,7 +17,7 @@ import MS.tipo_asistencia.dto.TipoRequestDTO;
 import MS.tipo_asistencia.dto.TipoResponseDTO;
 import MS.tipo_asistencia.service.TipoService;
 
-// ANOTACIONES DE SWAGGER
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

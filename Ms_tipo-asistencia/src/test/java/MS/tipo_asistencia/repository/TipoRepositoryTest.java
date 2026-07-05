@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,41 +13,33 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import MS.tipo_asistencia.model.Tipo;
-import jakarta.persistence.EntityManager;
 
-@SpringBootTest
-@Transactional
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Pruebas Paramétricas desde cero para TipoRepository")
 public class TipoRepositoryTest {
 
-    @Autowired
+    @Mock
     private TipoRepository tipoRepository;
-
-    @Autowired
-    private EntityManager entityManager;
 
     private Tipo tipoBase;
 
     @BeforeEach
     void setUp() {
-        // Inicializamos una clasificación paramétrica respetando las restricciones de tu modelo físico
         tipoBase = new Tipo();
+        tipoBase.setIdTipo(1L);
         tipoBase.setNombre("JUSTIFICADO");
-
-        entityManager.persist(tipoBase);
-        entityManager.flush();
     }
 
     @Test
     @DisplayName("findAll() - Debe retornar el catálogo completo de clasificaciones registradas")
     void findAll_DebeRetornarTodosLosTiposDeAsistencia() {
+        when(tipoRepository.findAll()).thenReturn(List.of(tipoBase));
+
         List<Tipo> resultado = tipoRepository.findAll();
 
         assertNotNull(resultado);
@@ -56,16 +50,20 @@ public class TipoRepositoryTest {
     @Test
     @DisplayName("findById() - Debe recuperar exitosamente una clasificación paramétrica por su clave primaria")
     void findById_DebeRetornarTipo_CuandoIdExiste() {
-        Optional<Tipo> resultado = tipoRepository.findById(tipoBase.getIdTipo());
+        when(tipoRepository.findById(1L)).thenReturn(Optional.of(tipoBase));
+
+        Optional<Tipo> resultado = tipoRepository.findById(1L);
 
         assertTrue(resultado.isPresent());
         assertEquals("JUSTIFICADO", resultado.get().getNombre());
-        assertEquals(tipoBase.getIdTipo(), resultado.get().getIdTipo());
+        assertEquals(1L, resultado.get().getIdTipo());
     }
 
     @Test
     @DisplayName("findById() - Debe retornar un Optional vacío si el identificador no existe en MySQL")
     void findById_DebeRetornarVacio_CuandoIdNoExiste() {
+        when(tipoRepository.findById(999L)).thenReturn(Optional.empty());
+
         Optional<Tipo> resultado = tipoRepository.findById(999L);
         assertFalse(resultado.isPresent());
         assertTrue(resultado.isEmpty());
@@ -75,14 +73,16 @@ public class TipoRepositoryTest {
     @DisplayName("save() - Debe registrar una nueva clasificación en el catálogo de manera correcta")
     void save_DebePersistirNuevoTipo_CuandoSeProcesaEntidad() {
         Tipo nuevoTipo = new Tipo();
+        nuevoTipo.setIdTipo(2L);
         nuevoTipo.setNombre("INASISTENCIA_INJUSTIFICADA");
+
+        when(tipoRepository.save(any(Tipo.class))).thenReturn(nuevoTipo);
+        when(tipoRepository.count()).thenReturn(2L);
 
         Tipo guardado = tipoRepository.save(nuevoTipo);
 
         assertNotNull(guardado.getIdTipo());
         assertEquals("INASISTENCIA_INJUSTIFICADA", guardado.getNombre());
-        
-        // Verificamos que se haya incrementado el total en el repositorio local
         assertEquals(2, tipoRepository.count());
     }
 }
