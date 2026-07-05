@@ -23,12 +23,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import feign.FeignException;
 
 import com.cur_eva.client.EvaluacionClient;
-import com.cur_eva.client.CursoClient; // 🛠️ INYECTADO NUEVO CLIENTE FEIGN
+import com.cur_eva.client.CursoClient;
 import com.cur_eva.dto.CursoEvaluacionRequestDTO;
 import com.cur_eva.dto.CursoEvaluacionResponseDTO;
 import com.cur_eva.dto.EvaluacionResponseDTO;
 import com.cur_eva.dto.TipoEvaluacionResponseDTO;
-import com.cur_eva.dto.CursoResponseDTO; // 🛠️ INYECTADO DTO ESPEJO LOCAL
+import com.cur_eva.dto.CursoResponseDTO;
 import com.cur_eva.model.CursoEvaluacion;
 import com.cur_eva.repository.CursoEvaluacionRepository;
 
@@ -43,7 +43,7 @@ public class CursoEvaluacionServiceTest {
     private EvaluacionClient evaluacionClient;
 
     @Mock
-    private CursoClient cursoClient; // 🛠️ MOCK DEL NUEVO CLIENTE DE INTEGRACIÓN
+    private CursoClient cursoClient;
 
     @InjectMocks
     private CursoEvaluacionService cursoEvaluacionService;
@@ -52,11 +52,10 @@ public class CursoEvaluacionServiceTest {
     private CursoEvaluacionRequestDTO requestDTOMock;
     private EvaluacionResponseDTO evaluacionMock;
     private TipoEvaluacionResponseDTO tipoMock;
-    private CursoResponseDTO cursoResponseMock; // 🛠️ DTO MOCK LOCAL
+    private CursoResponseDTO cursoResponseMock;
 
     @BeforeEach
     void setUp() {
-        // 1. Inicialización de la entidad local institucional
         entidadMock = new CursoEvaluacion();
         entidadMock.setIdCursoEvaluacion(1L);
         entidadMock.setNombre("ACTIVO");
@@ -66,7 +65,6 @@ public class CursoEvaluacionServiceTest {
         entidadMock.setFApertura("2026-06-20");
         entidadMock.setFCierre("2026-07-20");
 
-        // 2. Inicialización del DTO de entrada para persistencia
         requestDTOMock = new CursoEvaluacionRequestDTO();
         requestDTOMock.setNombre("ACTIVO");
         requestDTOMock.setIdCurso(12L);
@@ -74,37 +72,32 @@ public class CursoEvaluacionServiceTest {
         requestDTOMock.setFApertura("2026-06-20");
         requestDTOMock.setFCierre("2026-07-20");
 
-        // 3. Mockeo puro con Mockito para evitar errores de Classpath o Lombok
-        evaluacionMock = mock(EvaluacionResponseDTO.class);
-        when(evaluacionMock.getId_Evaluacion()).thenReturn(100L);
-        when(evaluacionMock.getNombre()).thenReturn("Certamen 1");
-        when(evaluacionMock.getPorcentaje()).thenReturn(30.0);
-        when(evaluacionMock.getIdTipoEval()).thenReturn(2L);
+        evaluacionMock = new EvaluacionResponseDTO();
+        evaluacionMock.setId_Evaluacion(100L);
+        evaluacionMock.setNombre("Certamen 1");
+        evaluacionMock.setPorcentaje(30.0);
+        evaluacionMock.setIdTipoEval(2L);
 
-        tipoMock = mock(TipoEvaluacionResponseDTO.class);
-        when(tipoMock.getIdTipoEval()).thenReturn(2L);
-        when(tipoMock.getNombreTipo()).thenReturn("Certamen");
+        tipoMock = new TipoEvaluacionResponseDTO();
+        tipoMock.setIdTipoEval(2L);
+        tipoMock.setNombreTipo("Certamen");
 
-        // 🛠️ 4. Mockeo de la respuesta procedente de curso_seccion (Puerto 8080)
-        cursoResponseMock = mock(CursoResponseDTO.class);
-        when(cursoResponseMock.getId()).thenReturn(12L);
-        when(cursoResponseMock.getNombre()).thenReturn("Programación Orientada a Objetos");
-        when(cursoResponseMock.getFechaCreacion()).thenReturn("20/06/26");
+        cursoResponseMock = new CursoResponseDTO();
+        cursoResponseMock.setId(12L);
+        cursoResponseMock.setNombre("Programación Orientada a Objetos");
+        cursoResponseMock.setFechaCreacion("20/06/26");
     }
 
     @Test
     @DisplayName("obtenerTodos() - Debe retornar DTOs con metadatos externos de evaluaciones y cursos enriquecidos")
     void obtenerTodos_DebeRetornarListaEnriquecida_CuandoTodosLosMicroserviciosResponden() {
-        // Arrange
         when(cursoEvaluacionRepository.findAll()).thenReturn(List.of(entidadMock));
         when(evaluacionClient.buscarPorId(100L)).thenReturn(evaluacionMock);
         when(evaluacionClient.buscarTipoPorId(2L)).thenReturn(tipoMock);
-        when(cursoClient.buscarCursoPorId(12L)).thenReturn(cursoResponseMock); // Simula curso_seccion
+        when(cursoClient.buscarCursoPorId(12L)).thenReturn(cursoResponseMock);
 
-        // Act
         List<CursoEvaluacionResponseDTO> resultado = cursoEvaluacionService.obtenerTodos();
 
-        // Assert
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
         assertEquals("ACTIVO", resultado.get(0).getNombre());
@@ -120,19 +113,16 @@ public class CursoEvaluacionServiceTest {
     @Test
     @DisplayName("obtenerTodos() - Debe ser tolerante y resiliente si el microservicio de cursos falla")
     void obtenerTodos_DebeRetornarDatosLocales_CuandoFallaCursoSeccion() {
-        // Arrange
         when(cursoEvaluacionRepository.findAll()).thenReturn(List.of(entidadMock));
         when(evaluacionClient.buscarPorId(100L)).thenReturn(evaluacionMock);
         when(evaluacionClient.buscarTipoPorId(2L)).thenReturn(tipoMock);
         when(cursoClient.buscarCursoPorId(12L)).thenThrow(new RuntimeException("Error en curso_seccion (Timeout)"));
 
-        // Act
         List<CursoEvaluacionResponseDTO> resultado = cursoEvaluacionService.obtenerTodos();
 
-        // Assert
         assertNotNull(resultado);
         assertEquals("Certamen 1", resultado.get(0).getNombreEvaluacion());
-        assertEquals("Curso no disponible", resultado.get(0).getNombreCurso()); // Capturado por el bloque catch de resiliencia
+        assertEquals("Curso no disponible", resultado.get(0).getNombreCurso());
         
         verify(cursoEvaluacionRepository, times(1)).findAll();
     }
@@ -140,42 +130,34 @@ public class CursoEvaluacionServiceTest {
     @Test
     @DisplayName("guardar() - Debe registrar localmente si pasa la validación perimetral de curso y evaluación")
     void guardar_DebeAlmacenar_CuandoCursoYEvaluacionExistenEnRemoto() {
-        // Arrange
         when(cursoEvaluacionRepository.findByNombreIgnoreCase("ACTIVO")).thenReturn(Optional.empty());
-        when(cursoClient.buscarCursoPorId(12L)).thenReturn(cursoResponseMock); // Validación distribuida 1
-        when(evaluacionClient.buscarPorId(100L)).thenReturn(evaluacionMock); // Validación distribuida 2
+        when(cursoClient.buscarCursoPorId(12L)).thenReturn(cursoResponseMock);
+        when(evaluacionClient.buscarPorId(100L)).thenReturn(evaluacionMock);
         when(cursoEvaluacionRepository.save(any(CursoEvaluacion.class))).thenReturn(entidadMock);
 
-        // Act
         CursoEvaluacionResponseDTO resultado = cursoEvaluacionService.guardar(requestDTOMock);
 
-        // Assert
         assertNotNull(resultado);
         assertEquals(1L, resultado.getIdCursoEvaluacion());
-        verify(cursoEvaluacionRepository, never()); // Verifica aislamiento
-        verify(cursoClient, times(2)).buscarCursoPorId(12L); // Una para validar en guardar, otra al mapear en toResponseDTO
+        verify(cursoEvaluacionRepository, never()).findAll();
+        verify(cursoClient, times(2)).buscarCursoPorId(12L);
         verify(cursoEvaluacionRepository, times(1)).save(any(CursoEvaluacion.class));
     }
 
     @Test
     @DisplayName("guardar() - Debe lanzar excepción si Feign reporta un 404 del curso en curso_seccion")
     void guardar_DebeLanzarExcepcion_CuandoCursoNoExisteEnCursoSeccion() {
-        // Arrange
         when(cursoEvaluacionRepository.findByNombreIgnoreCase("ACTIVO")).thenReturn(Optional.empty());
         
         FeignException.NotFound feignNotFound = mock(FeignException.NotFound.class);
-        when(cursoClient.buscarCursoPorId(12L)).thenThrow(feignNotFound); // Bloqueo perimetral en la primera validación
+        when(cursoClient.buscarCursoPorId(12L)).thenThrow(feignNotFound);
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> {
             cursoEvaluacionService.guardar(requestDTOMock);
         });
 
         verify(cursoEvaluacionRepository, times(1)).findByNombreIgnoreCase("ACTIVO");
-        verify(evaluacionClient, never()).buscarPorId(any(Long.class)); // Bloquea la ejecución antes de llamar al segundo MS
+        verify(evaluacionClient, never()).buscarPorId(any(Long.class));
         verify(cursoEvaluacionRepository, never()).save(any(CursoEvaluacion.class));
     }
 }
-
-
-

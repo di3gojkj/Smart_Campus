@@ -46,9 +46,17 @@ public class CursoEvaluacionControllerTest {
 
     @BeforeEach
     void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(cursoEvaluacionController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(cursoEvaluacionController)
+                .setValidator(new org.springframework.validation.SmartValidator() {
+                    @Override
+                    public boolean supports(Class<?> clazz) { return true; }
+                    @Override
+                    public void validate(Object target, org.springframework.validation.Errors errors) {}
+                    @Override
+                    public void validate(Object target, org.springframework.validation.Errors errors, Object... validationHints) {}
+                })
+                .build();
 
-        // Armamos el objeto de respuesta simulado con metadatos locales y remotos
         responseMock = new CursoEvaluacionResponseDTO();
         responseMock.setIdCursoEvaluacion(1L);
         responseMock.setNombre("ACTIVO");
@@ -111,5 +119,3 @@ public class CursoEvaluacionControllerTest {
         verify(cursoEvaluacionService, times(1)).guardar(any(CursoEvaluacionRequestDTO.class));
     }
 }
-
-
