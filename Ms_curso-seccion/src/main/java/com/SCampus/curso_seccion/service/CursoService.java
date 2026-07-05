@@ -21,10 +21,10 @@ public class CursoService {
 
     private final CursoRepository cursoRepository;
 
-    
     private CursoResponseDTO mapToDTO(Curso c) {
         CursoResponseDTO dto = new CursoResponseDTO();
         dto.setId(c.getId());
+        dto.setNombre(c.getNombre());
         dto.setFechaCreacion(c.getFechaCreacion());
         return dto;
     }
@@ -46,8 +46,8 @@ public class CursoService {
             throw new RuntimeException("Conflicto Académico: El curso con esa fecha ya existe.");
         }
 
-        
         Curso curso = new Curso();
+        curso.setNombre(dto.getNombre());
         curso.setFechaCreacion(dto.getFechaCreacion());
         
         Curso guardado = cursoRepository.save(curso);
