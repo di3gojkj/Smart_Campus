@@ -7,12 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -158,5 +162,41 @@ public class AsistenciaServiceTest {
         verify(tipoRepository, times(1)).findById(1L);
         verify(listaClient, times(1)).buscarPorId(45L);
         verify(asistenciaRepository, never()).save(any(Asistencia.class));
+    }
+
+    @Test
+    @DisplayName("obtenerPorId() - Debe retornar el DTO consolidado si existe localmente")
+    void obtenerPorId_DebeRetornarDTO_CuandoExiste() {
+        when(asistenciaRepository.findById(101L)).thenReturn(Optional.of(asistenciaMock));
+        when(listaClient.buscarPorId(45L)).thenReturn(listaResponseMock);
+
+        Optional<AsistenciaResponseDTO> resultado = asistenciaService.obtenerPorId(101L);
+
+        assertTrue(resultado.isPresent());
+        assertEquals(101L, resultado.get().getIdAsistencia());
+        verify(asistenciaRepository, times(1)).findById(101L);
+        verify(listaClient, times(1)).buscarPorId(45L);
+    }
+
+    @Test
+    @DisplayName("obtenerPorId() - Debe retornar Optional vacío si no existe en BD")
+    void obtenerPorId_DebeRetornarVacio_CuandoNoExiste() {
+        when(asistenciaRepository.findById(999L)).thenReturn(Optional.empty());
+
+        Optional<AsistenciaResponseDTO> resultado = asistenciaService.obtenerPorId(999L);
+
+        assertTrue(resultado.isEmpty());
+        verify(asistenciaRepository, times(1)).findById(999L);
+        verify(listaClient, never()).buscarPorId(any());
+    }
+
+    @Test
+    @DisplayName("eliminar() - Debe llamar al repositorio para borrar el registro")
+    void eliminar_DebeLlamarAlRepositorio() {
+        // Ejecutamos el método void
+        asistenciaService.eliminar(101L);
+        
+        // Verificamos que pasó por la línea de código correcta
+        verify(asistenciaRepository, times(1)).deleteById(101L);
     }
 }

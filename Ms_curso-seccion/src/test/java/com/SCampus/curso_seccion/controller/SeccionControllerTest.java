@@ -148,4 +148,14 @@ public class SeccionControllerTest {
         verify(seccionService, times(1)).obtenerPorIdEnriquecido(5L);
         verify(seccionService, times(1)).eliminar(5L);
     }
+
+    @Test
+    @DisplayName("POST /api/seccion - Debe retornar 400 Bad Request si body es vacio")
+    void crear_DebeRetornar400_CuandoBodyVacio() throws Exception {
+        mockMvc.perform(post("/api/seccion")
+                .param("idCarreraVerificar", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
 }

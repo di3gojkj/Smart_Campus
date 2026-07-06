@@ -15,7 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.any;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -164,6 +165,42 @@ public class SeccionServiceTest {
         assertEquals("Desarrollo en Fullstack", resultado.get().getDatosAcademicos().getNombreAsignatura());
         
         verify(seccionRepository, times(1)).findById(101L);
+    }
+
+    @Test
+    @DisplayName("obtenerPorIdEnriquecido() - Debe retornar Optional vacío cuando el ID no existe localmente")
+    void obtenerPorIdEnriquecido_DebeRetornarVacio_CuandoIdNoExiste() {
+        when(seccionRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Optional<SeccionResponseDTO> resultado = seccionService.obtenerPorIdEnriquecido(99L);
+
+        assertTrue(resultado.isEmpty());
+        verify(seccionRepository, times(1)).findById(99L);
+    }
+
+    @Test
+    @DisplayName("guardarEnriquecido() - Debe lanzar excepción si el Curso no existe")
+    void guardarEnriquecido_DebeLanzarExcepcion_CuandoCursoNoExiste() {
+        // Simulamos que el curso base no existe
+        when(cursoRepository.existsById(45L)).thenReturn(false);
+
+        assertThrows(RuntimeException.class, () -> {
+            seccionService.guardarEnriquecido(seccionEjemplo, 1L);
+        });
+
+        verify(cursoRepository, times(1)).existsById(45L);
+        verify(carreraAsignaturaClient, never()).listarPorCarrera(any());
+        verify(seccionRepository, never()).save(any(Seccion.class));
+    }
+
+    @Test
+    @DisplayName("eliminar() - Debe llamar al repositorio para eliminar por ID")
+    void eliminar_DebeLlamarAlRepositorio() {
+        // Ejecutamos el método que no retorna nada (void)
+        seccionService.eliminar(5L);
+        
+        // Verificamos que el repositorio efectivamente fue llamado para borrar
+        verify(seccionRepository, times(1)).deleteById(5L);
     }
 }
 

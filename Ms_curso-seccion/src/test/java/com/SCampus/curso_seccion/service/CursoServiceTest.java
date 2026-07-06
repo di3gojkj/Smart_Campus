@@ -103,4 +103,15 @@ public class CursoServiceTest {
         assertEquals("14/06/26", resultado.get().getFechaCreacion());
         verify(cursoRepository, times(1)).findById(12L);
     }
+    
+    @Test
+    @DisplayName("obtenerPorId() - Debe retornar Optional vacío cuando el ID no existe")
+    void obtenerPorId_DebeRetornarVacio_CuandoIdNoExiste() {
+        when(cursoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Optional<CursoResponseDTO> resultado = cursoService.obtenerPorId(99L);
+
+        assertTrue(resultado.isEmpty());
+        verify(cursoRepository, times(1)).findById(99L);
+    }
 }

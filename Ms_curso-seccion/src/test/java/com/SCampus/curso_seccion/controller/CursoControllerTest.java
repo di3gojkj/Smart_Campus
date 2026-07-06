@@ -116,4 +116,13 @@ public class CursoControllerTest {
 
         verify(cursoService, times(1)).obtenerPorId(99L);
     }
+
+    @Test
+    @DisplayName("POST /api/cursos/guardar - Debe retornar 400 Bad Request si body es invalido o vacio")
+    void guardar_DebeRetornar400_CuandoBodyVacio() throws Exception {
+        mockMvc.perform(post("/api/cursos/guardar")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
 }

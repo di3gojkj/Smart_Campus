@@ -119,5 +119,14 @@ public class TipoControllerTest {
         verify(tipoService, times(1)).crear(any(TipoRequestDTO.class));
     }
 
+    @Test
+    @DisplayName("POST /api/tipo - Debe retornar 400 Bad Request si el body está vacío")
+    void crear_DebeRetornar400_CuandoBodyVacio() throws Exception {
+        mockMvc.perform(post("/api/tipo")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
 
 }

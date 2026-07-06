@@ -149,4 +149,13 @@ public class AsistenciaControllerTest {
         verify(asistenciaService, times(1)).obtenerPorId(101L);
         verify(asistenciaService, times(1)).eliminar(101L);
     }
+
+    @Test
+    @DisplayName("POST /api/asistencias - Debe retornar 400 Bad Request si el body está vacío")
+    void crear_DebeRetornar400_CuandoBodyVacio() throws Exception {
+        mockMvc.perform(post("/api/asistencias")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
 }
