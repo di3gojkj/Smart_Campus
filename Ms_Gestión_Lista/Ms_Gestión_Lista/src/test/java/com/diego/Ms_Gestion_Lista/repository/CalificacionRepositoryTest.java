@@ -57,7 +57,6 @@ public class CalificacionRepositoryTest {
         calificacionRepository.save(calif1);
         calificacionRepository.save(calif2);
 
-        // Aquí usamos el método personalizado que tienes en tu interfaz
         List<Calificacion> resultados = calificacionRepository.buscarPorLista(listaGuardada.getIdLista());
 
         assertEquals(2, resultados.size());

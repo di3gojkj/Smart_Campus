@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -59,6 +60,31 @@ public class UsuarioControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/usuarios debe retornar una lista vacía y código 200 cuando no hay datos")
+    void obtenerTodos_debeRetornarListaVacia() throws Exception {
+        // Simulamos que la base de datos no tiene registros
+        when(usuarioService.obtenerTodos()).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/usuarios")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0)); // Verifica que el array JSON está vacío
+    }
+
+    @Test
+    @DisplayName("GET /api/usuarios/{id} debe retornar 200 cuando el usuario existe")
+    void obtenerPorId_debeRetornar200_cuandoExiste() throws Exception {
+        UsuarioResponseDTO response = new UsuarioResponseDTO(1L, "12345678-9", "Diego", "Rivas", "diego@duocuc.cl", 1L, null);
+        when(usuarioService.obtenerPorId(1L)).thenReturn(response);
+
+        mockMvc.perform(get("/api/usuarios/1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rut").value("12345678-9"));
+    }
+
+    @Test
     @DisplayName("POST /api/usuarios debe retornar 201 Created con datos válidos")
     void crear_debeRetornar201_cuandoDatosSonValidos() throws Exception {
         // Objeto que simulamos enviar desde Postman
@@ -74,5 +100,27 @@ public class UsuarioControllerTest {
                 .andExpect(status().isCreated()) // Esperamos un 201
                 .andExpect(jsonPath("$.idUsuario").value(1))
                 .andExpect(jsonPath("$.nombre").value("Diego"));
+    }
+
+    @Test
+    @DisplayName("GET /api/usuarios/correo/{correo} debe retornar 200 cuando existe")
+    void obtenerPorCorreo_debeRetornar200_cuandoExiste() throws Exception {
+        UsuarioResponseDTO response = new UsuarioResponseDTO(1L, "12345678-9", "Diego", "Rivas", "diego@duocuc.cl", 1L, null);
+        when(usuarioService.obtenerPorCorreo("diego@duocuc.cl")).thenReturn(response);
+
+        mockMvc.perform(get("/api/usuarios/correo/diego@duocuc.cl")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correo").value("diego@duocuc.cl"));
+    }
+
+    @Test
+    @DisplayName("POST /api/usuarios debe retornar 400 Bad Request si el JSON está vacío (Falla @Valid)")
+    void crear_debeRetornar400_cuandoFaltanDatosObligatorios() throws Exception {
+        // Enviamos un JSON vacío "{}", lo que hará que las validaciones @Valid fallen
+        mockMvc.perform(post("/api/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest()); 
     }
 }

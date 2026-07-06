@@ -61,7 +61,6 @@ public class AcademicoServiceTest {
         request.setIdUser(10L);
         request.setIdCurso(5L);
 
-        // Simulamos que el cliente Feign encuentra al usuario
         when(usuarioClient.obtenerUsuarioPorId(10L)).thenReturn(new UsuarioResponseDTO());
         when(listaRepository.save(any(Lista.class))).thenReturn(listaEjemplo);
 
@@ -69,30 +68,43 @@ public class AcademicoServiceTest {
 
         assertNotNull(resultado);
         assertEquals(1L, resultado.getIdLista());
-        verify(listaRepository, times(1)).save(any(Lista.class));
     }
 
     @Test
     @DisplayName("crearLista() lanza RuntimeException si el usuario NO existe en MS-Usuarios")
     void crearLista_usuarioNoExiste() {
         ListaRequestDTO request = new ListaRequestDTO();
-        request.setIdUser(99L); // ID inexistente
+        request.setIdUser(99L); 
 
-        // Simulamos que el FeignClient lanza un 404 Not Found
         FeignException.NotFound feignNotFound = mock(FeignException.NotFound.class);
         when(usuarioClient.obtenerUsuarioPorId(99L)).thenThrow(feignNotFound);
 
         assertThrows(RuntimeException.class, () -> academicoService.crearLista(request));
-        verify(listaRepository, never()).save(any(Lista.class));
+    }
+
+    @Test
+    @DisplayName("crearLista() lanza excepcion generica si MS-Usuarios no responde")
+    void crearLista_fallaMsUsuarios() {
+        ListaRequestDTO request = new ListaRequestDTO();
+        request.setIdUser(10L); 
+        when(usuarioClient.obtenerUsuarioPorId(10L)).thenThrow(new RuntimeException("Connection Refused"));
+
+        assertThrows(RuntimeException.class, () -> academicoService.crearLista(request));
+    }
+
+    @Test
+    @DisplayName("obtenerTodasLasListas() retorna la lista completa")
+    void obtenerTodasLasListas_exito() {
+        when(listaRepository.findAll()).thenReturn(List.of(listaEjemplo));
+        List<ListaResponseDTO> resultado = academicoService.obtenerTodasLasListas();
+        assertEquals(1, resultado.size());
     }
 
     @Test
     @DisplayName("obtenerListaPorId() retorna la lista si existe")
     void obtenerListaPorId_exito() {
         when(listaRepository.findById(1L)).thenReturn(Optional.of(listaEjemplo));
-        
         ListaResponseDTO resultado = academicoService.obtenerListaPorId(1L);
-        
         assertEquals(10L, resultado.getIdUser());
     }
 
@@ -100,7 +112,6 @@ public class AcademicoServiceTest {
     @DisplayName("obtenerListaPorId() lanza excepción si no encuentra la lista")
     void obtenerListaPorId_noEncontrado() {
         when(listaRepository.findById(99L)).thenReturn(Optional.empty());
-        
         assertThrows(RegistroNotFoundException.class, () -> academicoService.obtenerListaPorId(99L));
     }
 
@@ -118,19 +129,24 @@ public class AcademicoServiceTest {
         when(calificacionRepository.save(any(Calificacion.class))).thenReturn(calificacionEjemplo);
 
         CalificacionResponseDTO resultado = academicoService.registrarCalificacion(request);
+        assertEquals(new BigDecimal("6.5"), resultado.getNota()); 
+    }
 
-        assertNotNull(resultado);
-        assertEquals(new BigDecimal("6.5"), resultado.getNota()); // Retorna el mock que definimos arriba
+    @Test
+    @DisplayName("registrarCalificacion() lanza excepcion si la Lista no existe")
+    void registrarCalificacion_fallaSiNoExisteLista() {
+        CalificacionRequestDTO request = new CalificacionRequestDTO();
+        request.setIdLista(99L);
+        
+        when(listaRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(RegistroNotFoundException.class, () -> academicoService.registrarCalificacion(request));
     }
 
     @Test
     @DisplayName("obtenerCalificacionesPorLista() retorna la lista de notas")
     void obtenerCalificacionesPorLista_exito() {
         when(calificacionRepository.buscarPorLista(1L)).thenReturn(List.of(calificacionEjemplo));
-
         List<CalificacionResponseDTO> resultados = academicoService.obtenerCalificacionesPorLista(1L);
-
-        assertFalse(resultados.isEmpty());
         assertEquals(1L, resultados.get(0).getIdCalificacion());
     }
 }

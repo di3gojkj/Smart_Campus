@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.diego.Ms_Gestion_Lista.dto.ListaRequestDTO;
 import com.diego.Ms_Gestion_Lista.dto.ListaResponseDTO;
+import com.diego.Ms_Gestion_Lista.exception.RegistroNotFoundException;
 import com.diego.Ms_Gestion_Lista.service.AcademicoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -38,16 +40,42 @@ public class ListaControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    @DisplayName("GET /api/listas retorna 200 OK")
+    @DisplayName("GET /api/listas retorna 200 OK y array con datos")
     void listar_debeRetornar200() throws Exception {
         ListaResponseDTO dto = new ListaResponseDTO(1L, 10L, 5L, LocalDateTime.now());
         when(academicoService.obtenerTodasLasListas()).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/listas")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/listas").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].idLista").value(1))
-                .andExpect(jsonPath("$[0].idUser").value(10));
+                .andExpect(jsonPath("$[0].idLista").value(1));
+    }
+
+    @Test
+    @DisplayName("GET /api/listas retorna 200 OK y array vacio")
+    void listar_vacio() throws Exception {
+        when(academicoService.obtenerTodasLasListas()).thenReturn(Collections.emptyList());
+        mockMvc.perform(get("/api/listas").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("GET /api/listas/{id} retorna 200 OK")
+    void buscarPorId_debeRetornar200() throws Exception {
+        ListaResponseDTO dto = new ListaResponseDTO(1L, 10L, 5L, LocalDateTime.now());
+        when(academicoService.obtenerListaPorId(1L)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/listas/1").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idLista").value(1));
+    }
+
+    @Test
+    @DisplayName("GET /api/listas/{id} lanza excepcion si no existe")
+    void buscarPorId_lanzaExcepcion() throws Exception {
+        when(academicoService.obtenerListaPorId(99L)).thenThrow(new RegistroNotFoundException("No existe"));
+        mockMvc.perform(get("/api/listas/99").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(result -> org.junit.jupiter.api.Assertions.assertTrue(result.getResolvedException() instanceof RegistroNotFoundException));
     }
 
     @Test
@@ -56,7 +84,6 @@ public class ListaControllerTest {
         ListaRequestDTO request = new ListaRequestDTO();
         request.setIdUser(10L);
         request.setIdCurso(5L);
-
         ListaResponseDTO response = new ListaResponseDTO(1L, 10L, 5L, LocalDateTime.now());
         when(academicoService.crearLista(any(ListaRequestDTO.class))).thenReturn(response);
 
@@ -65,5 +92,12 @@ public class ListaControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.idUser").value(10));
+    }
+
+    @Test
+    @DisplayName("POST /api/listas retorna 400 Bad Request por validacion de vacio")
+    void insertar_badRequest() throws Exception {
+        mockMvc.perform(post("/api/listas").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
     }
 }

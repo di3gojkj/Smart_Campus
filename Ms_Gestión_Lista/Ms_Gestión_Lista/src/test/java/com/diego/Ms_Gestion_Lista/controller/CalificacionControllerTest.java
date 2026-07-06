@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -38,19 +39,28 @@ public class CalificacionControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    @DisplayName("GET /api/calificaciones/lista/{idLista} retorna 200 OK")
+    @DisplayName("GET /api/calificaciones/lista/{idLista} retorna 200 OK con datos")
     void listarPorLista_debeRetornar200() throws Exception {
         CalificacionResponseDTO dto = new CalificacionResponseDTO(1L, new BigDecimal("6.5"), 1L, 2L);
         when(academicoService.obtenerCalificacionesPorLista(1L)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/calificaciones/lista/1")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/calificaciones/lista/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nota").value(6.5));
     }
 
     @Test
-    @DisplayName("POST /api/calificaciones evalúa correctamente (1.0 a 7.0)")
+    @DisplayName("GET /api/calificaciones/lista/{idLista} retorna 200 OK con vacio")
+    void listarPorLista_vacia() throws Exception {
+        when(academicoService.obtenerCalificacionesPorLista(1L)).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/calificaciones/lista/1").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("POST /api/calificaciones evalúa correctamente")
     void evaluar_debeRetornar201() throws Exception {
         CalificacionRequestDTO request = new CalificacionRequestDTO();
         request.setNota(new BigDecimal("7.0"));
@@ -65,5 +75,12 @@ public class CalificacionControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.nota").value(7.0));
+    }
+
+    @Test
+    @DisplayName("POST /api/calificaciones falla con 400 Bad Request por Body vacio")
+    void evaluar_badRequest() throws Exception {
+        mockMvc.perform(post("/api/calificaciones").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
     }
 }

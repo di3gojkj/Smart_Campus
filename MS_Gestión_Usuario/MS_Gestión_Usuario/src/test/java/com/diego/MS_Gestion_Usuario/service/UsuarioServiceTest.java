@@ -2,6 +2,7 @@ package com.diego.MS_Gestion_Usuario.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -28,6 +29,8 @@ import com.diego.MS_Gestion_Usuario.model.Rol;
 import com.diego.MS_Gestion_Usuario.model.Usuario;
 import com.diego.MS_Gestion_Usuario.repository.RolRepository;
 import com.diego.MS_Gestion_Usuario.repository.UsuarioRepository;
+
+import feign.FeignException;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Test Unitario de UsuarioService con Mockito")
@@ -93,6 +96,8 @@ public class UsuarioServiceTest {
         assertEquals("diego@duocuc.cl", resultado.getCorreo());
     }
 
+    
+
     @Test
     @DisplayName("obtenerPorId() lanza UsuarioNotFoundException cuando el ID no existe")
     void obtenerPorId_debeLanzarExcepcion_cuandoNoExiste() {
@@ -104,30 +109,103 @@ public class UsuarioServiceTest {
     }
 
     @Test
-    @DisplayName("guardar() crea y retorna el usuario correctamente validando relaciones")
-    void guardar_debeCrearUsuario_cuandoDatosSonValidos() {
-        // GIVEN: Simulamos que el correo y el RUT no existen para que pase la validación
+    @DisplayName("obtenerPorCorreo() lanza excepcion cuando el correo no existe")
+    void obtenerPorCorreo_debeLanzarExcepcion_cuandoNoExiste() {
+        when(usuarioRepository.findByCorreo(anyString())).thenReturn(Optional.empty());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.obtenerPorCorreo("fantasma@duocuc.cl"));
+        assertTrue(ex.getMessage().contains("Usuario no encontrado con el correo"));
+    }
+
+    @Test
+    @DisplayName("validarEstadoRemoto() lanza excepcion cuando Feign retorna 404 Not Found")
+    void validarEstadoRemoto_debeLanzarExcepcion_cuandoFeignRetornaNotFound() {
+        FeignException.NotFound mockNotFound = mock(FeignException.NotFound.class);
+        when(estadoClient.obtenerEstadoPorId(99L)).thenThrow(mockNotFound);
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.validarEstadoRemoto(99L));
+        assertTrue(ex.getMessage().contains("Regla Distribuida"));
+    }
+
+    @Test
+    @DisplayName("validarEstadoRemoto() lanza excepcion generica cuando MS Estados falla")
+    void validarEstadoRemoto_debeLanzarExcepcion_cuandoHayErrorDeConexion() {
+        when(estadoClient.obtenerEstadoPorId(99L)).thenThrow(new RuntimeException("Connection Refused"));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.validarEstadoRemoto(99L));
+        assertTrue(ex.getMessage().contains("Falla de Comunicación"));
+    }
+
+    @Test
+    @DisplayName("guardar() lanza excepcion si el correo ya existe")
+    void guardar_debeLanzarExcepcion_cuandoCorreoYaExiste() {
+        when(usuarioRepository.findByCorreo(requestDTO.getCorreo())).thenReturn(Optional.of(usuarioEjemplo));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.guardar(requestDTO));
+        assertTrue(ex.getMessage().contains("ya está registrado"));
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("guardar() lanza excepcion si el RUT ya existe")
+    void guardar_debeLanzarExcepcion_cuandoRutYaExiste() {
+        when(usuarioRepository.findByCorreo(anyString())).thenReturn(Optional.empty());
+        when(usuarioRepository.findByRut(requestDTO.getRut())).thenReturn(Optional.of(usuarioEjemplo));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.guardar(requestDTO));
+        assertTrue(ex.getMessage().contains("RUT"));
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("guardar() lanza excepcion si el Rol no existe localmente")
+    void guardar_debeLanzarExcepcion_cuandoRolNoExiste() {
         when(usuarioRepository.findByCorreo(anyString())).thenReturn(Optional.empty());
         when(usuarioRepository.findByRut(anyString())).thenReturn(Optional.empty());
-        
-        // Simulamos que el Feign Client encuentra el estado
+        when(estadoClient.obtenerEstadoPorId(anyLong())).thenReturn(new EstadoResponseDTO(1L, "ACTIVO"));
+        when(rolRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.guardar(requestDTO));
+        assertTrue(ex.getMessage().contains("no existe localmente"));
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("guardar() crea y retorna el usuario correctamente validando relaciones")
+    void guardar_debeCrearUsuario_cuandoDatosSonValidos() {
+        when(usuarioRepository.findByCorreo(anyString())).thenReturn(Optional.empty());
+        when(usuarioRepository.findByRut(anyString())).thenReturn(Optional.empty());
         when(estadoClient.obtenerEstadoPorId(1L)).thenReturn(new EstadoResponseDTO(1L, "ACTIVO"));
-        
-        // Simulamos que encuentra el Rol
         when(rolRepository.findById(1L)).thenReturn(Optional.of(rolEjemplo));
-        
-        // Simulamos la encriptación
         when(passwordEncoder.encode(anyString())).thenReturn("claveEncriptada");
-        
-        // Simulamos el guardado final
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioEjemplo);
 
-        //Ejecutamos el guardado
         UsuarioResponseDTO resultado = usuarioService.guardar(requestDTO);
 
-        //Comprobamos el éxito
         assertNotNull(resultado);
         assertEquals("Diego", resultado.getNombre());
         verify(usuarioRepository, times(1)).save(any(Usuario.class));
+    }
+
+    @Test
+    @DisplayName("obtenerPorCorreo() retorna el DTO del usuario cuando el correo existe")
+    void obtenerPorCorreo_debeRetornarUsuario_cuandoExiste() {
+        when(usuarioRepository.findByCorreo("diego@duocuc.cl")).thenReturn(Optional.of(usuarioEjemplo));
+        
+        UsuarioResponseDTO resultado = usuarioService.obtenerPorCorreo("diego@duocuc.cl");
+        
+        assertNotNull(resultado);
+        assertEquals("diego@duocuc.cl", resultado.getCorreo());
+        verify(usuarioRepository, times(1)).findByCorreo(anyString());
+    }
+
+    @Test
+    @DisplayName("guardar() lanza excepcion genérica si ocurre un error inesperado en BD")
+    void guardar_debeLanzarExcepcion_cuandoFallaBaseDeDatos() {
+        when(usuarioRepository.findByCorreo(anyString())).thenReturn(Optional.empty());
+        when(usuarioRepository.findByRut(anyString())).thenReturn(Optional.empty());
+        when(estadoClient.obtenerEstadoPorId(1L)).thenReturn(new EstadoResponseDTO(1L, "ACTIVO"));
+        when(rolRepository.findById(1L)).thenReturn(Optional.of(rolEjemplo));
+        when(passwordEncoder.encode(anyString())).thenReturn("clave");
+        
+        when(usuarioRepository.save(any(Usuario.class))).thenThrow(new RuntimeException("Error fatal de BD"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.guardar(requestDTO));
+        assertTrue(ex.getMessage().contains("Error fatal de BD"));
     }
 }
